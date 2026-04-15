@@ -1,7 +1,6 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
-import '../../auth/login_page.dart'; // nanti kita pakai
+import 'package:google_fonts/google_fonts.dart';
+import '../auth_choice/auth_choice_screen.dart'; // 🔥 ganti ini
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,88 +10,151 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+    with TickerProviderStateMixin {
+
+  late AnimationController _slideController;
+  late Animation<Offset> _slideAnimation;
+
+  late AnimationController _iconController;
+  late Animation<double> _iconAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    // 🎬 ANIMATION
-    _controller = AnimationController(
+    // 🔥 Animasi teks (slide)
+    _slideController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 1200),
     );
 
-    _fadeAnimation = Tween(begin: 0.0, end: 1.0).animate(_controller);
-
-    _scaleAnimation = Tween(begin: 0.7, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.5),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _slideController, curve: Curves.easeOut),
     );
 
-    _controller.forward();
+    // 🔥 Animasi icon
+    _iconController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
 
-    // ⏱️ PINDAH HALAMAN
-    Timer(const Duration(seconds: 3), () {
+    _iconAnimation = Tween<double>(
+      begin: 0.5,
+      end: 1,
+    ).animate(
+      CurvedAnimation(parent: _iconController, curve: Curves.elasticOut),
+    );
+
+    _slideController.forward();
+
+    Future.delayed(const Duration(milliseconds: 300), () {
+      _iconController.forward();
+    });
+
+    // 🔥 PINDAH KE AUTH CHOICE
+    Future.delayed(const Duration(seconds: 4), () {
+      if (!mounted) return; // 🔥 biar aman
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const LoginPage()),
+        MaterialPageRoute(builder: (_) => const AuthChoiceScreen()),
       );
     });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _slideController.dispose();
+    _iconController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // 🔥 Responsive
+    final titleSize = screenWidth * 0.08;
+    final subtitleSize = screenWidth * 0.035;
+    final taglineSize = screenWidth * 0.02;
+    final iconSize = screenWidth * 0.05;
+
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: const Color(0xFFF5E6DA),
+
       body: Center(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: ScaleTransition(
-            scale: _scaleAnimation,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // 🔥 LOGO
-                Image.asset(
-                  'assets/images/logo.png',
-                  width: MediaQuery.of(context).size.width * 0.35,
-                ),
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
 
-                const SizedBox(height: 25),
+              // 🔥 LOGO TEXT + ICON
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
 
-                // 🔥 TITLE
-                const Text(
-                  "DAPUR ATIK",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
+                  ScaleTransition(
+                    scale: _iconAnimation,
+                    child: Icon(
+                      Icons.restaurant,
+                      size: iconSize,
+                      color: const Color(0xFF7A1C1C),
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 8),
+                  const SizedBox(width: 10),
 
-                // 🔥 SUBTITLE
-                const Text(
-                  "FOOD DELIVERY SERVICE",
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    letterSpacing: 1.5,
+                  Text(
+                    "Mbak Atik",
+                    style: GoogleFonts.pacifico(
+                      fontSize: titleSize,
+                      color: const Color(0xFF7A1C1C),
+                    ),
                   ),
+
+                  const SizedBox(width: 10),
+
+                  ScaleTransition(
+                    scale: _iconAnimation,
+                    child: Icon(
+                      Icons.restaurant_menu,
+                      size: iconSize,
+                      color: const Color(0xFF7A1C1C),
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: screenWidth * 0.03),
+
+              // 🔥 Subtitle
+              Text(
+                "Catering",
+                style: GoogleFonts.poppins(
+                  fontSize: subtitleSize,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1F1F1F),
+                  letterSpacing: 2,
                 ),
-              ],
-            ),
+              ),
+
+              SizedBox(height: screenWidth * 0.02),
+
+              // 🔥 Tagline
+              Text(
+                "Food Delivery Service",
+                style: GoogleFonts.poppins(
+                  fontSize: taglineSize,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF3A3A3A),
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ],
           ),
         ),
       ),

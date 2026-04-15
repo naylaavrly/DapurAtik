@@ -19,10 +19,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false, // ❌ hilangkan DEBUG
       title: 'Dapur Atik',
+
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF7A1C1C),
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF5E6DA),
       ),
+
       home: const SplashScreen(),
     );
   }

@@ -22,6 +22,9 @@ dependencies:
   # IMAGE
   image_picker: ^1.1.2
 
+  # FONT (WAJIB untuk splash)
+  google_fonts: ^6.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -29,6 +32,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
-assets:
-  - assets/images/logo.png
