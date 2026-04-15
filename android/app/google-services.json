@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "455411552050",
+    "project_id": "dapuratik-388fb",
+    "storage_bucket": "dapuratik-388fb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:455411552050:android:929233e5481ed4f3a6d12b",
+        "android_client_info": {
+          "package_name": "com.example.dapur_atik"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9q6GrT0dY1s0gJ4hNG_5RfakqydZ71Ao"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
