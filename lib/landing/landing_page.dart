@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../screens/auth_choice/auth_choice_screen.dart';
-import '../../../user/user_home.dart';
+import '../screens/auth_choice/auth_choice_screen.dart';
+import 'menu_page.dart';
+import '../user/user_home.dart';
 
 class Landingpage extends StatefulWidget {
   const Landingpage({super.key});
@@ -44,7 +45,7 @@ class _LandingpageState extends State<Landingpage> {
     if (context != null) {
       Scrollable.ensureVisible(
         context,
-        duration: Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
     }
@@ -58,7 +59,6 @@ class _LandingpageState extends State<Landingpage> {
       body: Column(
         children: [
 
-          // 🔥 NAVBAR
           _buildNavbar(),
 
           Expanded(
@@ -100,15 +100,25 @@ class _LandingpageState extends State<Landingpage> {
             children: [
               TextButton(
                 onPressed: () => _scrollToSection(_homeKey),
-                child: Text("Home", style: TextStyle(color: Colors.white)),
+                child: const Text("Home", style: TextStyle(color: Colors.white)),
               ),
+
+              // 🔥 FIX DI SINI
               TextButton(
-                onPressed: () => _scrollToSection(_menuKey),
-                child: Text("Menu", style: TextStyle(color: Colors.white)),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const MenuPage(),
+                    ),
+                  );
+                },
+                child: const Text("Menu", style: TextStyle(color: Colors.white)),
               ),
+
               TextButton(
                 onPressed: () => _scrollToSection(_kontakKey),
-                child: Text("Kontak", style: TextStyle(color: Colors.white)),
+                child: const Text("Kontak", style: TextStyle(color: Colors.white)),
               ),
 
               ElevatedButton(
@@ -123,7 +133,7 @@ class _LandingpageState extends State<Landingpage> {
                     ),
                   );
                 },
-                child: Text("Pesan", style: TextStyle(color: Colors.black)),
+                child: const Text("Pesan", style: TextStyle(color: Colors.black)),
               )
             ],
           )
@@ -135,18 +145,18 @@ class _LandingpageState extends State<Landingpage> {
   // ================= HERO =================
   Widget _buildHero() {
     return Container(
-      color: Color (0xFFFFFFFF), 
+      color: const Color(0xFFFFFFFF),
       padding: const EdgeInsets.all(30),
       child: Column(
         children: [
 
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              border: Border.all(color: Color(0xFF61100D)), // warna utama
+              border: Border.all(color: const Color(0xFF61100D)),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(
+            child: const Text(
               "Terpercaya Sejak 1996",
               style: TextStyle(
                 color: Color(0xFF61100D),
@@ -155,7 +165,7 @@ class _LandingpageState extends State<Landingpage> {
             ),
           ),
 
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
 
           Text(
             "Catering rumahan berkualitas untuk setiap momen spesial Anda",
@@ -166,22 +176,22 @@ class _LandingpageState extends State<Landingpage> {
             ),
           ),
 
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
 
-          Text(
+          const Text(
             "Menu lezat dengan cita rasa rumahan, harga terjangkau, dan pelayanan terpercaya",
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey),
           ),
 
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
 
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF61100D),
+                  backgroundColor: const Color(0xFF61100D),
                 ),
                 onPressed: () {
                   Navigator.push(
@@ -191,26 +201,35 @@ class _LandingpageState extends State<Landingpage> {
                     ),
                   );
                 },
-                child: Text("Pesan Sekarang", style: TextStyle(color: Colors.white)),
+                child: const Text("Pesan Sekarang", style: TextStyle(color: Colors.white)),
               ),
-              SizedBox(width: 10),
+
+              const SizedBox(width: 10),
+
               OutlinedButton(
-                onPressed: () => _scrollToSection(_menuKey),
-                child: Text("Lihat Menu"),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const MenuPage(),
+                    ),
+                  );
+                },
+                child: const Text("Lihat Menu"),
               ),
             ],
           ),
 
-          SizedBox(height: 30),
+          const SizedBox(height: 30),
         ],
       ),
     );
   }
 
-  // ================= MENU =================
+  // ================= MENU (PREVIEW) =================
   Widget _buildMenu() {
     return Container(
-      color: Color(0xFFFFFFFF),
+      color: const Color(0xFFFFFFFF),
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
@@ -226,16 +245,16 @@ class _LandingpageState extends State<Landingpage> {
             ),
           ),
 
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
 
           Row(
             children: [
               Expanded(child: _menuCard("Ayam Geprek")),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Expanded(child: _menuCard("Ayam Bakar")),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Expanded(child: _menuCard("Nasi Goreng")),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Expanded(child: _menuCard("Paket Hemat")),
             ],
           ),
@@ -248,11 +267,11 @@ class _LandingpageState extends State<Landingpage> {
   Widget _buildFooter() {
     return Container(
       width: double.infinity,
-      color: Color(0xFF2E2E2E),
-      padding: EdgeInsets.all(25),
+      color: const Color(0xFF2E2E2E),
+      padding: const EdgeInsets.all(25),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: const [
 
           Text("Kontak Kami",
               style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
@@ -296,19 +315,19 @@ class _LandingpageState extends State<Landingpage> {
 
           Text(
             "© 2024 Mbak Atik Catering. All rights reserved.",
-            style: TextStyle(color: Colors.grey[500], fontSize: 12),
+            style: TextStyle(color: Colors.grey, fontSize: 12),
           ),
         ],
       ),
     );
   }
 
-  // ================= COMPONENT =================
+  // ================= CARD =================
   Widget _menuCard(String title) {
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Color(0xFFF5F5F5),
+        color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -317,7 +336,7 @@ class _LandingpageState extends State<Landingpage> {
             radius: 22,
             backgroundColor: Colors.grey[300],
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(title),
         ],
       ),
