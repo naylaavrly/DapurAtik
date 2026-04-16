@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../auth/login_page.dart';
 import '../../auth/register_page.dart';
 import '../../user/user_home.dart';
+import '../../landing/landing_page.dart';
 
 class AuthChoiceScreen extends StatefulWidget {
   const AuthChoiceScreen({super.key});
@@ -41,26 +42,118 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
       backgroundColor: const Color(0xFFF5E6DA),
 
       body: Center(
-        child: Wrap(
-          spacing: 30,
-          runSpacing: 20,
-          alignment: WrapAlignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
 
-            // 🔥 REGISTER
-            _buildCard(
-              title: "Register",
-              subtitle: "Buat akun baru",
-              icon: Icons.person_add_alt_1,
-              onTap: () => _showRegisterDialog(context),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+
+                Icon(
+                  Icons.restaurant,
+                  size: 32,
+                  color: const Color(0xFF7A1C1C),
+                ),
+
+                const SizedBox(width: 10),
+
+                Text(
+                  "Mbak Atik Cathering",
+                  style: GoogleFonts.pacifico(
+                    fontSize: 34,
+                    color: const Color(0xFF7A1C1C),
+                  ),
+                ),
+
+                const SizedBox(width: 10),
+
+                Icon(
+                  Icons.restaurant_menu,
+                  size: 32,
+                  color: const Color(0xFF7A1C1C),
+                ),
+              ],
             ),
 
-            // 🔥 LOGIN
-            _buildCard(
-              title: "Login",
-              subtitle: "Masuk ke akun",
-              icon: Icons.login,
-              onTap: () => _showLoginDialog(context),
+            const SizedBox(height: 10),
+
+            // 🔥 SUBTITLE
+            Text(
+              "Catering",
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 2,
+                color: const Color(0xFF1F1F1F),
+              ),
+            ),
+
+            const SizedBox(height: 5),
+
+            Text(
+              "Food Delivery Service",
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: Colors.grey[700],
+                letterSpacing: 1.2,
+              ),
+            ),
+
+            const SizedBox(height: 40),
+
+            // 🔥 CARD LOGIN & REGISTER
+            Wrap(
+              spacing: 30,
+              runSpacing: 20,
+              alignment: WrapAlignment.center,
+              children: [
+
+                _buildCard(
+                  title: "Register",
+                  subtitle: "Buat akun baru",
+                  icon: Icons.person_add_alt_1,
+                  onTap: () => _showRegisterDialog(context),
+                ),
+
+                _buildCard(
+                  title: "Login",
+                  subtitle: "Masuk ke akun",
+                  icon: Icons.login,
+                  onTap: () => _showLoginDialog(context),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 30),
+
+            Wrap(
+              spacing: 30,
+              runSpacing: 20,
+              alignment: WrapAlignment.center,
+              children: [
+                const SizedBox(height: 30),
+
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const Landingpage(),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    "Kembali ke Beranda",
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: Color(0xFF61100D),
+                      fontWeight: FontWeight.w500,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -68,7 +161,7 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
     );
   }
 
-  // 🔥 CARD UI + ANIMASI
+  // 🔥 CARD UI
   Widget _buildCard({
     required String title,
     required String subtitle,
@@ -86,7 +179,6 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
 
-            // 🔥 GRADIENT SOFT
             gradient: LinearGradient(
               colors: [
                 Colors.white,
@@ -178,7 +270,7 @@ class _AuthChoiceScreenState extends State<AuthChoiceScreen> {
 }
 
 //////////////////////////////////////////////////////////////
-// 🔥 HOVER + SCALE CLASS (SUDAH DIGABUNG DI FILE INI)
+// 🔥 HOVER EFFECT
 //////////////////////////////////////////////////////////////
 
 class HoverScaleCard extends StatefulWidget {
