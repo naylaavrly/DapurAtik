@@ -132,6 +132,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     onPressed: isLoading ? null : register,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF8B0000),
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -159,7 +160,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   },
                   child: const Text(
                     "Sudah punya akun? Login",
-                    style: TextStyle(color: Colors.black54),
+                    style: TextStyle(color: Colors.black),
                   ),
                 ),
               ],

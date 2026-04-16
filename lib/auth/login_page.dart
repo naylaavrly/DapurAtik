@@ -143,6 +143,7 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: isLoading ? null : login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF8B0000),
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -174,7 +175,7 @@ class _LoginPageState extends State<LoginPage> {
                   },
                   child: const Text(
                     "Belum punya akun? Register",
-                    style: TextStyle(color: Colors.black54),
+                    style: TextStyle(color: Colors.black),
                   ),
                 ),
               ],
