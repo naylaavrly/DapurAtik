@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
 
 import 'admin_dashboard.dart';
 import 'admin_paket_page.dart';
@@ -16,10 +15,10 @@ class _AdminHomeState extends State<AdminHome> {
   int selectedIndex = 0;
 
   final List<Widget> pages = [
-    const AdminDashboard(),
-    const Center(child: Text("Halaman Pengiriman")),
-    const AdminPaketPage(),
-    const AdminUserPage(),
+    const AdminDashboard(), // 0 → Home
+    const AdminPaketPage(), // 1 → Menu
+    const Center(child: Text("Halaman Pengiriman")), // 2 → Pengiriman
+    const AdminUserPage(), // 3 → User
   ];
 
   @override
@@ -27,63 +26,93 @@ class _AdminHomeState extends State<AdminHome> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5E6DA),
 
-      body: Row(
+      body: Stack(
         children: [
 
-          // 🔥 SIDEBAR (FIX WARNA)
-          Container(
-            width: 90,
-            color: const Color(0xFF7A1C1C),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-
-                _menuItem(Icons.home, 0),
-                _menuItem(Icons.local_shipping, 1),
-                _menuItem(Icons.restaurant_menu, 2),
-                _menuItem(Icons.people, 3),
-
-                const SizedBox(height: 40),
-
-                IconButton(
-                  onPressed: () async {
-                    await AuthService().logout();
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(
-                    Icons.logout,
-                    color: Colors.white,
-                    size: 30,
-                  ),
-                ),
-              ],
-            ),
+          // 🔥 CONTENT
+          Positioned.fill(
+            child: pages[selectedIndex],
           ),
 
-          // 🔥 CONTENT (TANPA HEADER MERAH)
-          Expanded(
-            child: pages[selectedIndex],
+          // 🔥 DOCK BAWAH (MACBOOK STYLE)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 20,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(40),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 20,
+                      color: Colors.black.withOpacity(0.1),
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _dockItem(Icons.home, 0, "Home"),
+                    _dockItem(Icons.restaurant, 1, "Menu"),
+                    _dockItem(Icons.local_shipping, 2, "Pengiriman"),
+                    _dockItem(Icons.people, 3, "User"),
+                    _dockItem(Icons.logout, 4, "Logout"),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _menuItem(IconData icon, int index) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: IconButton(
-        onPressed: () {
+  // 🔥 DOCK ITEM
+  Widget _dockItem(IconData icon, int index, String label) {
+    final isActive = selectedIndex == index;
+
+    return Tooltip(
+      message: label,
+      child: GestureDetector(
+        onTap: () {
+          if (index == 4) {
+            // 🔥 LOGOUT
+            Navigator.pop(context);
+            return;
+          }
+
           setState(() {
             selectedIndex = index;
           });
         },
-        icon: Icon(
-          icon,
-          size: 30,
-          color: selectedIndex == index
-              ? Colors.white
-              : Colors.white70,
+
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          margin: const EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.all(12),
+
+          decoration: BoxDecoration(
+            color: isActive
+                ? const Color(0xFF7A1C1C).withOpacity(0.1)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+          ),
+
+          child: Icon(
+            icon,
+            size: 26,
+            color: isActive
+                ? const Color(0xFF7A1C1C)
+                : Colors.grey,
+          ),
         ),
       ),
     );
