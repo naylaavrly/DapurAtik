@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../screens/auth_choice/auth_choice_screen.dart';
-import 'menu_page.dart';
 import '../user/user_home.dart';
+import '../auth/login_page.dart';
+import '../auth/register_page.dart';
 
 class Landingpage extends StatefulWidget {
   const Landingpage({super.key});
@@ -20,6 +21,7 @@ class _LandingpageState extends State<Landingpage> {
   final GlobalKey _homeKey = GlobalKey();
   final GlobalKey _menuKey = GlobalKey();
   final GlobalKey _kontakKey = GlobalKey();
+  bool showDropdown = false;
 
   @override
   void initState() {
@@ -105,14 +107,7 @@ class _LandingpageState extends State<Landingpage> {
 
               // 🔥 FIX DI SINI
               TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const MenuPage(),
-                    ),
-                  );
-                },
+                onPressed: () => _scrollToSection(_menuKey),
                 child: const Text("Menu", style: TextStyle(color: Colors.white)),
               ),
 
@@ -120,21 +115,6 @@ class _LandingpageState extends State<Landingpage> {
                 onPressed: () => _scrollToSection(_kontakKey),
                 child: const Text("Kontak", style: TextStyle(color: Colors.white)),
               ),
-
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AuthChoiceScreen(),
-                    ),
-                  );
-                },
-                child: const Text("Pesan", style: TextStyle(color: Colors.black)),
-              )
             ],
           )
         ],
@@ -144,87 +124,152 @@ class _LandingpageState extends State<Landingpage> {
 
   // ================= HERO =================
   Widget _buildHero() {
-    return Container(
-      color: const Color(0xFFFFFFFF),
-      padding: const EdgeInsets.all(30),
-      child: Column(
-        children: [
+  return Container(
+    color: const Color(0xFFFFFFFF),
+    padding: const EdgeInsets.all(30),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
 
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFF61100D)),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              "Terpercaya Sejak 1996",
-              style: TextStyle(
-                color: Color(0xFF61100D),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color(0xFF61100D)),
+            borderRadius: BorderRadius.circular(20),
           ),
-
-          const SizedBox(height: 20),
-
-          Text(
-            "Catering rumahan berkualitas untuk setiap momen spesial Anda",
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+          child: const Text(
+            "Terpercaya Sejak 1996",
+            style: TextStyle(
+              color: Color(0xFF61100D),
+              fontWeight: FontWeight.w500,
             ),
           ),
+        ),
 
-          const SizedBox(height: 10),
+        const SizedBox(height: 20),
 
-          const Text(
-            "Menu lezat dengan cita rasa rumahan, harga terjangkau, dan pelayanan terpercaya",
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey),
+        Text(
+          "Catering rumahan berkualitas untuk setiap momen spesial Anda",
+          textAlign: TextAlign.center,
+          style: GoogleFonts.poppins(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
           ),
+        ),
 
-          const SizedBox(height: 20),
+        const SizedBox(height: 10),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF61100D),
+        const Text(
+          "Menu lezat dengan cita rasa rumahan, harga terjangkau, dan pelayanan terpercaya",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey),
+        ),
+
+        const SizedBox(height: 20),
+
+        // 🔥 BAGIAN BUTTON + DROPDOWN
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            // 🔥 KIRI (PESAN + DROPDOWN)
+            Column(
+              children: [
+
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF61100D),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      showDropdown = !showDropdown;
+                    });
+                  },
+                  child: const Text("Pesan Sekarang"),
                 ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AuthChoiceScreen(),
+
+                const SizedBox(height: 8),
+
+                if (showDropdown)
+                  Container(
+                    width: 220,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 6)
+                      ],
                     ),
-                  );
-                },
-                child: const Text("Pesan Sekarang", style: TextStyle(color: Colors.white)),
-              ),
+                    child: Column(
+                      children: [
 
-              const SizedBox(width: 10),
+                        InkWell(
+                          onTap: () {
+                            setState(() => showDropdown = false);
+                            showDialog(
+                              context: context,
+                              builder: (_) => const Dialog(
+                                child: SizedBox(width: 400, child: LoginPage()),
+                              ),
+                            );
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                Icon(Icons.login, color: Color(0xFF61100D)),
+                                SizedBox(width: 10),
+                                Text("Login"),
+                              ],
+                            ),
+                          ),
+                        ),
 
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const MenuPage(),
+                        const Divider(height: 1),
+
+                        InkWell(
+                          onTap: () {
+                            setState(() => showDropdown = false);
+                            showDialog(
+                              context: context,
+                              builder: (_) => const Dialog(
+                                child: SizedBox(width: 400, child: RegisterPage()),
+                              ),
+                            );
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                Icon(Icons.person_add, color: Color(0xFF61100D)),
+                                SizedBox(width: 10),
+                                Text("Register"),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                },
-                child: const Text("Lihat Menu"),
-              ),
-            ],
-          ),
+                  ),
+              ],
+            ),
 
-          const SizedBox(height: 30),
-        ],
-      ),
-    );
-  }
+            const SizedBox(width: 12),
+          ],
+        ),
+
+        const SizedBox(height: 30),
+      ],
+    ),
+  );
+}
 
   // ================= MENU (PREVIEW) =================
   Widget _buildMenu() {
@@ -247,16 +292,84 @@ class _LandingpageState extends State<Landingpage> {
 
           const SizedBox(height: 20),
 
-          Row(
-            children: [
-              Expanded(child: _menuCard("Ayam Geprek")),
-              const SizedBox(width: 10),
-              Expanded(child: _menuCard("Ayam Bakar")),
-              const SizedBox(width: 10),
-              Expanded(child: _menuCard("Nasi Goreng")),
-              const SizedBox(width: 10),
-              Expanded(child: _menuCard("Paket Hemat")),
-            ],
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('packages')
+                .snapshots(),
+            builder: (context, snapshot) {
+
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Text("Belum ada menu");
+              }
+
+              final docs = snapshot.data!.docs;
+
+              return Wrap(
+                spacing: 15,
+                runSpacing: 15,
+                children: [
+
+                  // 🔥 LIST MENU DARI FIREBASE
+                  ...docs.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+
+                    return SizedBox(
+                      width: 220,
+                      child: _menuCard(
+                        name: data['name'] ?? '',
+                        description: data['description'] ?? '',
+                        image: data['image_url'] ?? '',
+                        include: List<String>.from(data['include'] ?? []),
+                      ),
+                    );
+                  }).toList(),
+
+                  // 🔥 TOMBOL LIHAT SEMUA (DI SAMPING MENU)
+                  SizedBox(
+                    width: 60,
+                    height: 220,
+                    child: Center(
+                      child: InkWell(
+                        onTap: () {
+                          final user = FirebaseAuth.instance.currentUser;
+
+                          if (user == null) {
+                            showDialog(
+                              context: context,
+                              builder: (_) => const Dialog(
+                                child: SizedBox(width: 400, child: LoginPage()),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Masuk ke halaman menu lengkap")),
+                            );
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(50),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF61100D),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward,
+                            size: 18,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -323,21 +436,68 @@ class _LandingpageState extends State<Landingpage> {
   }
 
   // ================= CARD =================
-  Widget _menuCard(String title) {
+  Widget _menuCard({
+    required String name,
+    required String description,
+    required String image,
+    required List<String> include,
+  }) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: const Color(0xFFF5E6DA),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: Colors.grey[300],
-          ),
+
+          if (image.isNotEmpty)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                image,
+                height: 100,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            )
+          else
+            Container(
+              height: 100,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.image, size: 40),
+            ),
+
           const SizedBox(height: 10),
-          Text(title),
+
+          Text(
+            name,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+
+          const SizedBox(height: 5),
+
+          Text(
+            description,
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+
+          const SizedBox(height: 8),
+
+          Wrap(
+            spacing: 5,
+            runSpacing: 6,
+            children: include.map((item) {
+              return Chip(
+                label: Text(item, style: const TextStyle(fontSize: 10)),
+              );
+            }).toList(),
+          ),
         ],
       ),
     );
