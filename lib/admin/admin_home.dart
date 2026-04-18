@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-
-import 'admin_user_screen.dart';
 import 'admin_dashboard.dart';
 import 'admin_paket_page.dart';
 import 'admin_user_page.dart';
@@ -20,7 +18,7 @@ class _AdminHomeState extends State<AdminHome> {
     const AdminDashboard(), // 0
     const AdminPaketPage(), // 1
     const Center(child: Text("Halaman Pengiriman")), // 2
-    const AdminUserScreen(), // 3 → 🔥 PUNYA KAMU
+    const AdminUserPage(), // 3 → 🔥 PUNYA KAMU
   ];
 
   @override
