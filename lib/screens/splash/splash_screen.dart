@@ -1,6 +1,7 @@
+import 'package:dapur_atik/landing/landing_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../auth_choice/auth_choice_screen.dart'; // 🔥 ganti ini
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -59,7 +60,7 @@ class _SplashScreenState extends State<SplashScreen>
       if (!mounted) return; // 🔥 biar aman
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const AuthChoiceScreen()),
+        MaterialPageRoute(builder: (_) => const Landingpage()),
       );
     });
   }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'admin_user_screen.dart';
+import 'admin_dashboard.dart';
+import 'admin_paket_page.dart';
+import 'admin_user_page.dart';
 
-// ================= ENUM HALAMAN =================
-enum AdminPage { dashboard, users }
-
-// ================= MAIN ADMIN =================
 class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
 
@@ -13,101 +13,114 @@ class AdminHome extends StatefulWidget {
 }
 
 class _AdminHomeState extends State<AdminHome> {
-  AdminPage activePage = AdminPage.dashboard;
+  int selectedIndex = 0;
 
-  // ================= SIDEBAR ITEM =================
-  Widget _sideItem(
-      IconData icon, AdminPage page, Color primaryColor) {
-    return IconButton(
-      icon: Icon(
-        icon,
-        color: activePage == page
-            ? Colors.white
-            : Colors.white70,
-      ),
-      onPressed: () {
-        setState(() {
-          activePage = page;
-        });
-      },
-    );
-  }
+  // ================= LIST HALAMAN =================
+  final List<Widget> pages = [
+    const AdminDashboard(), // 0
+    const AdminPaketPage(), // 1
+    const Center(child: Text("Halaman Pengiriman")), // 2
+    const AdminUserScreen(), // 3 → 🔥 PUNYA KAMU
+  ];
 
-  // ================= KONTEN HALAMAN =================
-  Widget _buildContent() {
-    switch (activePage) {
-      case AdminPage.dashboard:
-        return const Center(
-          child: Text(
-            "Dashboard Admin 👩‍🍳",
-            style: TextStyle(fontSize: 18),
-          ),
-        );
-
-      case AdminPage.users:
-        return const AdminUserScreen(); // nanti kita pindah ke file lain
-    }
-  }
-
-  // ================= BUILD =================
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 700;
 
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-    final bgColor = theme.scaffoldBackgroundColor;
-
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: const Color(0xFFF5E6DA),
 
-      // ================= MOBILE NAV =================
-      bottomNavigationBar: isMobile
-          ? BottomNavigationBar(
-              currentIndex: activePage.index,
-              onTap: (i) {
-                setState(() {
-                  activePage = AdminPage.values[i];
-                });
-              },
-              selectedItemColor: primary,
-              items: const [
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.home), label: "Home"),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.people), label: "User"),
-              ],
-            )
-          : null,
+      body: Stack(
+        children: [
+          // ================= CONTENT =================
+          Positioned.fill(
+            child: pages[selectedIndex],
+          ),
 
-      // ================= BODY =================
-      body: isMobile
-          ? _buildContent()
-          : Row(
-              children: [
-                // ================= SIDEBAR =================
-                Container(
-                  width: 80,
-                  decoration: BoxDecoration(
-                    color: primary, // 🔥 pakai warna theme
-                    borderRadius: const BorderRadius.only(
-                      topRight: Radius.circular(20),
-                      bottomRight: Radius.circular(20),
+          // ================= NAVIGATION =================
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 20,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(40),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 20,
+                      color: Colors.black.withOpacity(0.1),
+                      offset: const Offset(0, 8),
                     ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _sideItem(Icons.home, AdminPage.dashboard, primary),
-                      _sideItem(Icons.people, AdminPage.users, primary),
-                    ],
-                  ),
+                  ],
                 ),
 
-                // ================= CONTENT =================
-                Expanded(child: _buildContent()),
-              ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _navItem(Icons.home, 0),
+                    _navItem(Icons.restaurant, 1),
+                    _navItem(Icons.local_shipping, 2),
+                    _navItem(Icons.people, 3),
+                    _logoutItem(),
+                  ],
+                ),
+              ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ================= NAV ITEM =================
+  Widget _navItem(IconData icon, int index) {
+    final isActive = selectedIndex == index;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedIndex = index;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.all(12),
+
+        decoration: BoxDecoration(
+          color: isActive
+              ? const Color(0xFF7A1C1C).withOpacity(0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+
+        child: Icon(
+          icon,
+          size: 26,
+          color: isActive
+              ? const Color(0xFF7A1C1C)
+              : Colors.grey,
+        ),
+      ),
+    );
+  }
+
+  // ================= LOGOUT =================
+  Widget _logoutItem() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context);
+      },
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8),
+        child: Icon(Icons.logout, color: Colors.grey),
+      ),
     );
   }
 }
