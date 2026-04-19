@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'user_history.dart';
+import 'user_profile.dart';
+
 class UserHome extends StatefulWidget {
   const UserHome({super.key});
 
@@ -37,9 +40,9 @@ class _UserHomeState extends State<UserHome> {
   }
 
   final List<Widget> pages = [
-    const Center(child: Text("Halaman Home")),
-    const Center(child: Text("Halaman History")),
-    const Center(child: Text("Halaman Profile")),
+    const UserHome(),
+    const HistoryPage(),
+    const ProfilePage(),
   ];
 
   @override
