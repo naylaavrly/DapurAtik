@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-import 'user_home.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class UserProfile extends StatefulWidget {
   const UserProfile({super.key});
@@ -17,7 +16,6 @@ class _UserProfileState extends State<UserProfile> {
   String email = "";
   bool isLoading = true;
 
-  /// 🔥 CONTROLLER BARU
   final addressController = TextEditingController();
   final phoneController = TextEditingController();
 
@@ -25,7 +23,6 @@ class _UserProfileState extends State<UserProfile> {
   final newPasswordController = TextEditingController();
 
   bool isVerified = false;
-
   bool showOldPassword = false;
   bool showNewPassword = false;
 
@@ -35,7 +32,6 @@ class _UserProfileState extends State<UserProfile> {
     getUserData();
   }
 
-  /// 🔥 AMBIL DATA USER
   Future<void> getUserData() async {
     final doc = await FirebaseFirestore.instance
         .collection('users')
@@ -52,7 +48,6 @@ class _UserProfileState extends State<UserProfile> {
     });
   }
 
-  /// 🔥 UPDATE PROFILE (ALAMAT + TELEPON)
   Future<void> updateProfile() async {
     try {
       await FirebaseFirestore.instance
@@ -73,7 +68,6 @@ class _UserProfileState extends State<UserProfile> {
     }
   }
 
-  /// 🔥 VALIDASI PASSWORD LAMA
   Future<void> verifyPassword() async {
     try {
       final cred = EmailAuthProvider.credential(
@@ -95,7 +89,6 @@ class _UserProfileState extends State<UserProfile> {
     }
   }
 
-  /// 🔥 UPDATE PASSWORD
   Future<void> updatePassword() async {
     try {
       await user!.updatePassword(newPasswordController.text);
@@ -126,43 +119,23 @@ class _UserProfileState extends State<UserProfile> {
             : Column(
                 children: [
 
-                  /// 🔥 HEADER
+                  // 🔥 NAVBAR (SUDAH RAPIH & TANPA PANAH)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 15, vertical: 15),
+                        horizontal: 30, vertical: 20),
                     color: const Color(0xFF61100D),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const UserHome()),
-                            );
-                          },
-                          icon: const Icon(Icons.arrow_back,
-                              color: Colors.white),
-                        ),
-                        const Expanded(
-                          child: Center(
-                            child: Text(
-                              "Profile",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 40),
-                      ],
+                    child: Text(
+                      "Profile",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
                     ),
                   ),
 
-                  /// 🔥 BODY
+                  // 🔥 BODY
                   Expanded(
                     child: SingleChildScrollView(
                       child: Padding(
@@ -186,7 +159,7 @@ class _UserProfileState extends State<UserProfile> {
 
                             const SizedBox(height: 20),
 
-                            /// 🔥 ALAMAT
+                            /// ADDRESS
                             TextField(
                               controller: addressController,
                               decoration: InputDecoration(
@@ -200,7 +173,7 @@ class _UserProfileState extends State<UserProfile> {
 
                             const SizedBox(height: 20),
 
-                            /// 🔥 TELEPON
+                            /// PHONE
                             TextField(
                               controller: phoneController,
                               keyboardType: TextInputType.phone,
@@ -215,7 +188,7 @@ class _UserProfileState extends State<UserProfile> {
 
                             const SizedBox(height: 20),
 
-                            /// 🔥 BUTTON UPDATE PROFILE
+                            /// BUTTON UPDATE
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
