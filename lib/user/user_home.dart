@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../landing/menu_page.dart';
+import '../landing/menu_detail_page.dart';
 import 'user_history.dart';
 import 'user_profile.dart';
 
@@ -129,15 +130,15 @@ class _UserHomeState extends State<UserHome> {
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
 
                 _quickActions(),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
 
                 _buildMenu(),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
 
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -147,6 +148,7 @@ class _UserHomeState extends State<UserHome> {
                       "Pesanan Aktif",
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.bold,
+                        fontSize: 20,
                       ),
                     ),
                   ),
@@ -290,92 +292,139 @@ class _UserHomeState extends State<UserHome> {
         ],
       ),
     );
-  }
+  }  
 
   // ================= MENU =================
   Widget _buildMenu() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: Column(
+      children: [
 
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Menu Pilihan",
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold,
-              ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            "Menu Pilihan",
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
             ),
           ),
+        ),
 
-          const SizedBox(height: 10),
+        const SizedBox(height: 15),
 
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('packages').snapshots(),
-            builder: (context, snapshot) {
+        StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance.collection('packages').snapshots(),
+          builder: (context, snapshot) {
 
-              if (!snapshot.hasData) {
-                return const CircularProgressIndicator();
-              }
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-              final docs = snapshot.data!.docs;
+            final docs = snapshot.data!.docs;
 
-              return SizedBox(
-                height: 160,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: docs.map((doc) {
+            return SizedBox(
+              height: 190, // 🔥 DIBESARIN
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: docs.map((doc) {
 
-                    final data = doc.data() as Map<String, dynamic>;
+                  final data = doc.data() as Map<String, dynamic>;
 
-                    return Container(
-                      width: 140,
-                      margin: const EdgeInsets.only(right: 10),
-                      padding: const EdgeInsets.all(10),
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => MenuDetailPage(
+                            name: data['name'] ?? '',
+                            price: data['price'] ?? 0,
+                            image: data['image_url'] ?? '',
+                            description: data['description'] ?? '',
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 160, // 🔥 DIBESARIN
+                      margin: const EdgeInsets.only(right: 12),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-
-                          if (data['image_url'] != "")
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.network(
-                                data['image_url'],
-                                height: 80,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          else
-                            Container(
-                              height: 80,
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.image),
-                            ),
-
-                          const SizedBox(height: 8),
-
-                          Text(
-                            data['name'] ?? '',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 8,
+                            color: Colors.black.withOpacity(0.08),
                           ),
                         ],
                       ),
-                    );
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
 
-                  }).toList(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
+                          // 🔥 IMAGE
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(14),
+                            ),
+                            child: data['image_url'] != ""
+                                ? Image.network(
+                                    data['image_url'],
+                                    height: 110,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    height: 110,
+                                    color: Colors.grey[300],
+                                    child: const Center(child: Icon(Icons.image)),
+                                  ),
+                          ),
+
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+
+                                // 🔥 NAMA
+                                Text(
+                                  data['name'] ?? '',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 4),
+
+                                // 🔥 HARGA
+                                Text(
+                                  "Rp ${data['price'] ?? 0}",
+                                  style: const TextStyle(
+                                    color: Color(0xFF61100D),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+
+                }).toList(),
+              ),
+            );
+          },
+        ),
+      ],
+    ),
+  );
+}
 
   // ================= ORDER =================
   Widget _orderCard(String title, String status) {
