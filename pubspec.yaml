@@ -25,6 +25,9 @@ dependencies:
   # FONT (WAJIB untuk splash)
   google_fonts: ^6.2.1
 
+  # CHART
+  fl_chart: ^0.68.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
