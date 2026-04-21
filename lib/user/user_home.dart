@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../landing/menu_page.dart';
+import 'user_history.dart';
+import 'user_profile.dart';
 
 class UserHome extends StatefulWidget {
   const UserHome({super.key});
@@ -14,6 +16,14 @@ class UserHome extends StatefulWidget {
 
 class _UserHomeState extends State<UserHome> {
   int selectedIndex = 0;
+
+  // 🔥 LIST HALAMAN
+  final List<Widget> pages = [
+    const SizedBox(), // HOME
+    const MenuPage(),
+    const HistoryPage(),
+    const UserProfile(),
+  ];
 
   String getGreeting() {
     final hour = DateTime.now().hour;
@@ -49,80 +59,19 @@ class _UserHomeState extends State<UserHome> {
 
           // ================= CONTENT =================
           Positioned.fill(
-            child: Column(
-              children: [
-
-                _buildNavbar(),
-
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-
-                        const SizedBox(height: 20),
-
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "${getGreeting()}, ${getUserName()} 👋🏻",
-                              style: GoogleFonts.poppins(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        _quickActions(),
-
-                        const SizedBox(height: 20),
-
-                        _buildMenu(),
-
-                        const SizedBox(height: 20),
-
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "Pesanan Aktif",
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        _orderCard("Ayam Geprek", "Diproses"),
-                        _orderCard("Paket Hemat", "Selesai"),
-
-                        const SizedBox(height: 100), // biar ga ketutup navbar
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            child: selectedIndex == 0
+                ? _buildHomeContent()
+                : pages[selectedIndex],
           ),
 
-          // ================= NAVBAR FLOATING =================
+          // ================= NAVBAR =================
           Positioned(
             left: 0,
             right: 0,
             bottom: 20,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.95),
                   borderRadius: BorderRadius.circular(40),
@@ -134,7 +83,6 @@ class _UserHomeState extends State<UserHome> {
                     ),
                   ],
                 ),
-
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -153,20 +101,68 @@ class _UserHomeState extends State<UserHome> {
     );
   }
 
-  // ================= NAVBAR ATAS =================
-  Widget _buildNavbar() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-      color: const Color(0xFF61100D),
-      child: Text(
-        "Mbak Atik Catering",
-        style: GoogleFonts.poppins(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
+  // 🔥 HOME CONTENT DIPISAH (BIAR RAPI)
+  Widget _buildHomeContent() {
+    return Column(
+      children: [
+
+        _buildNavbar(),
+
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+
+                const SizedBox(height: 20),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "${getGreeting()}, ${getUserName()} 👋🏻",
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                _quickActions(),
+
+                const SizedBox(height: 20),
+
+                _buildMenu(),
+
+                const SizedBox(height: 20),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Pesanan Aktif",
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                _orderCard("Ayam Geprek", "Diproses"),
+                _orderCard("Paket Hemat", "Selesai"),
+
+                const SizedBox(height: 100),
+              ],
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -179,13 +175,6 @@ class _UserHomeState extends State<UserHome> {
         setState(() {
           selectedIndex = index;
         });
-
-        if (index == 1) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const MenuPage()),
-          );
-        }
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
@@ -222,6 +211,23 @@ class _UserHomeState extends State<UserHome> {
     );
   }
 
+  // ================= NAVBAR ATAS =================
+  Widget _buildNavbar() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+      color: const Color(0xFF61100D),
+      child: Text(
+        "Mbak Atik Catering",
+        style: GoogleFonts.poppins(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+      ),
+    );
+  }
+
   // ================= QUICK ACTION =================
   Widget _quickActions() {
     return Padding(
@@ -234,10 +240,7 @@ class _UserHomeState extends State<UserHome> {
             icon: Icons.restaurant,
             label: "Pesan\nsekarang",
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MenuPage()),
-              );
+              setState(() => selectedIndex = 1);
             },
           ),
 
@@ -245,10 +248,7 @@ class _UserHomeState extends State<UserHome> {
             icon: Icons.menu_book,
             label: "Lihat menu",
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MenuPage()),
-              );
+              setState(() => selectedIndex = 1);
             },
           ),
 

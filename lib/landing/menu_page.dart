@@ -17,53 +17,71 @@ class MenuPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF5E6DA),
 
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF7A1C1C),
-        centerTitle: true,
-        title: Text(
-          "Menu",
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-        ),
-      ),
+      body: Column(
+        children: [
 
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('packages') // ✅ FIX
-            .where('is_active', isEqualTo: true) // ✅ hanya aktif
-            .snapshots(),
-        builder: (context, snapshot) {
+          // 🔥 NAVBAR CUSTOM
+          _buildNavbar(),
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('packages')
+                  .where('is_active', isEqualTo: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
 
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text("Menu belum tersedia"));
-          }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          final menus = snapshot.data!.docs;
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(child: Text("Menu belum tersedia"));
+                }
 
-          return GridView.builder(
-            padding: const EdgeInsets.all(20),
-            itemCount: menus.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 20,
-              crossAxisSpacing: 20,
-              childAspectRatio: 0.75,
+                final menus = snapshot.data!.docs;
+
+                return GridView.builder(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: menus.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 20,
+                    crossAxisSpacing: 20,
+                    childAspectRatio: 0.75,
+                  ),
+                  itemBuilder: (context, index) {
+                    final data = menus[index].data() as Map<String, dynamic>;
+
+                    return _menuCard(
+                      name: data['name'] ?? '',
+                      price: data['price'] ?? 0,
+                      category: data['category'] ?? '',
+                      image: data['image_url'] ?? '',
+                    );
+                  },
+                );
+              },
             ),
-            itemBuilder: (context, index) {
-              final data = menus[index].data() as Map<String, dynamic>;
+          ),
+        ],
+      ),
+    );
+  }
 
-              return _menuCard(
-                name: data['name'] ?? '',
-                price: data['price'] ?? 0,
-                category: data['category'] ?? '',
-                image: data['image_url'] ?? '', // ✅ FIX
-              );
-            },
-          );
-        },
+  // 🔥 NAVBAR BARU (SESUAI REQUEST KAMU)
+  Widget _buildNavbar() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+      color: const Color(0xFF61100D),
+      child: Text(
+        "Menu Paket",
+        style: GoogleFonts.poppins(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
       ),
     );
   }
@@ -90,7 +108,6 @@ class MenuPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
 
-          // 🔥 IMAGE
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             child: image.isNotEmpty
@@ -99,17 +116,6 @@ class MenuPage extends StatelessWidget {
                     height: 120,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 120,
-                        color: const Color(0xFFF3E3DA),
-                        child: const Icon(
-                          Icons.fastfood,
-                          size: 40,
-                          color: Color(0xFF7A1C1C),
-                        ),
-                      );
-                    },
                   )
                 : Container(
                     height: 120,
@@ -128,7 +134,6 @@ class MenuPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
 
-                // 🔥 CATEGORY
                 Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 8, vertical: 3),
@@ -147,7 +152,6 @@ class MenuPage extends StatelessWidget {
 
                 const SizedBox(height: 8),
 
-                // 🔥 NAME
                 Text(
                   name,
                   maxLines: 2,
@@ -160,9 +164,8 @@ class MenuPage extends StatelessWidget {
 
                 const SizedBox(height: 6),
 
-                // 🔥 PRICE
                 Text(
-                  formatRupiah(price), // ✅ FIX FORMAT
+                  formatRupiah(price),
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF7A1C1C),
