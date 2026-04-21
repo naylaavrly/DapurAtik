@@ -91,7 +91,7 @@ class _AdminUserPageState extends State<AdminUserPage> {
                     icon: const Icon(Icons.filter_list),
                     onSelected: (v) {
                       setState(() {
-                        selectedRole = v;
+                        selectedRole = v.toLowerCase();
                       });
                     },
                     itemBuilder: (_) => [
@@ -155,6 +155,8 @@ class _AdminUserPageState extends State<AdminUserPage> {
 
                       final name =
                           (d['name'] ?? "").toString().toLowerCase();
+                      final email =
+                          (d['email'] ?? "").toString().toLowerCase();
 
                       String role =
                           (d['role'] ?? 'customer').toString().toLowerCase();
@@ -162,7 +164,11 @@ class _AdminUserPageState extends State<AdminUserPage> {
                       // 🔥 FIX ROLE (hapus "user")
                       if (role != "admin") role = "customer";
 
-                      return name.contains(searchQuery) &&
+                      final matchSearch =
+                          name.contains(searchQuery) ||
+                          email.contains(searchQuery);
+
+                      return matchSearch &&
                           (selectedRole == "semua"
                               ? true
                               : role == selectedRole);
