@@ -260,11 +260,9 @@ class _LandingpageState extends State<Landingpage> {
                   ),
               ],
             ),
-
             const SizedBox(width: 12),
           ],
         ),
-
         const SizedBox(height: 30),
       ],
     ),
@@ -308,69 +306,70 @@ class _LandingpageState extends State<Landingpage> {
 
               final docs = snapshot.data!.docs;
 
-              return Wrap(
-                spacing: 15,
-                runSpacing: 15,
-                children: [
+              return SizedBox(
+                height: 250,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.only(left: 20),
+                  children: [
 
-                  // 🔥 LIST MENU DARI FIREBASE
-                  ...docs.map((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
+                    // 🔥 MENU FIREBASE
+                    ...docs.map((doc) {
+                      final data = doc.data() as Map<String, dynamic>;
 
-                    return SizedBox(
-                      width: 220,
-                      child: _menuCard(
-                        name: data['name'] ?? '',
-                        description: data['description'] ?? '',
-                        image: data['image_url'] ?? '',
-                        include: List<String>.from(data['include'] ?? []),
-                      ),
-                    );
-                  }).toList(),
+                      return Container(
+                        width: 220,
+                        margin: const EdgeInsets.only(right: 15),
+                        child: _menuCard(
+                          name: data['name'] ?? '',
+                          description: data['description'] ?? '',
+                          image: data['image_url'] ?? '',
+                          include: List<String>.from(data['include'] ?? []),
+                        ),
+                      );
+                    }).toList(),
 
-                  // 🔥 TOMBOL LIHAT SEMUA (DI SAMPING MENU)
-                  SizedBox(
-                    width: 60,
-                    height: 220,
-                    child: Center(
-                      child: InkWell(
-                        onTap: () {
-                          final user = FirebaseAuth.instance.currentUser;
+                    // 🔥 BUTTON PANAH
+                    Container(
+                      width: 80,
+                      margin: const EdgeInsets.only(right: 20),
+                      child: Center(
+                        child: InkWell(
+                          onTap: () {
+                            final user = FirebaseAuth.instance.currentUser;
 
-                          if (user == null) {
-                            showDialog(
-                              context: context,
-                              builder: (_) => const Dialog(
-                                child: SizedBox(width: 400, child: LoginPage()),
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Masuk ke halaman menu lengkap")),
-                            );
-                          }
-                        },
-                        borderRadius: BorderRadius.circular(50),
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0xFF61100D),
-                          ),
-                          child: const Icon(
-                            Icons.arrow_forward,
-                            size: 18,
-                            color: Colors.white,
+                            if (user == null) {
+                              showDialog(
+                                context: context,
+                                builder: (_) => const Dialog(
+                                  child: SizedBox(width: 400, child: LoginPage()),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Masuk ke menu lengkap")),
+                              );
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(50),
+                          child: Container(
+                            width: 45,
+                            height: 45,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0xFF61100D),
+                            ),
+                            child: const Icon(Icons.arrow_forward, color: Colors.white),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
             },
           ),
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -395,7 +394,7 @@ class _LandingpageState extends State<Landingpage> {
             children: [
               Icon(Icons.phone, color: Colors.white),
               SizedBox(width: 10),
-              Text("0812-3456-7890", style: TextStyle(color: Colors.white)),
+              Text("0813-1583-7240", style: TextStyle(color: Colors.white)),
             ],
           ),
 
@@ -407,7 +406,7 @@ class _LandingpageState extends State<Landingpage> {
               SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  "Jl. Mawar No. 123, Bekasi Timur",
+                  "Jl. Alun-Alun Selatan, Mustika Jaya, Bekasi, JaBar",
                   style: TextStyle(color: Colors.white),
                 ),
               ),
@@ -427,7 +426,7 @@ class _LandingpageState extends State<Landingpage> {
           SizedBox(height: 20),
 
           Text(
-            "© 2024 Mbak Atik Catering. All rights reserved.",
+            "© 2026 Mbak Atik Catering. All rights reserved.",
             style: TextStyle(color: Colors.grey, fontSize: 12),
           ),
         ],
