@@ -5,7 +5,6 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // ✅ LOGIN + AMBIL ROLE
   Future<String?> login({
     required String email,
     required String password,
@@ -25,16 +24,16 @@ class AuthService {
       if (!userDoc.exists) return null;
 
       return userDoc['role'];
-    } catch (e) {
-      throw e.toString();
+    } on FirebaseAuthException catch (e) {
+      throw e; // 🔥 FIX
     }
   }
 
-  // ✅ REGISTER + SIMPAN ROLE
   Future<User?> register({
+    required String name,
     required String email,
     required String password,
-    String role = 'user',
+    String role = 'customer', // 🔥 langsung benerin role juga
   }) async {
     try {
       UserCredential result =
@@ -44,18 +43,19 @@ class AuthService {
       );
 
       await _firestore.collection('users').doc(result.user!.uid).set({
+        'name': name, // 🔥 simpan nama
         'email': email,
         'role': role,
         'created_at': Timestamp.now(),
       });
 
       return result.user;
-    } catch (e) {
-      throw e.toString();
+
+    } on FirebaseAuthException catch (e) {
+      throw e; // 🔥 FIX
     }
   }
 
-  // LOGOUT
   Future<void> logout() async {
     await _auth.signOut();
   }
