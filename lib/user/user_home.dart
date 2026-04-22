@@ -1,10 +1,11 @@
+//ada card-card
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../landing/menu_page.dart';
-import '../landing/menu_detail_page.dart';
 import 'user_history.dart';
 import 'user_profile.dart';
 
@@ -18,9 +19,8 @@ class UserHome extends StatefulWidget {
 class _UserHomeState extends State<UserHome> {
   int selectedIndex = 0;
 
-  // 🔥 LIST HALAMAN
   final List<Widget> pages = [
-    const SizedBox(), // HOME
+    const SizedBox(),
     const MenuPage(),
     const HistoryPage(),
     const UserProfile(),
@@ -58,14 +58,12 @@ class _UserHomeState extends State<UserHome> {
       body: Stack(
         children: [
 
-          // ================= CONTENT =================
           Positioned.fill(
             child: selectedIndex == 0
                 ? _buildHomeContent()
                 : pages[selectedIndex],
           ),
 
-          // ================= NAVBAR =================
           Positioned(
             left: 0,
             right: 0,
@@ -102,7 +100,7 @@ class _UserHomeState extends State<UserHome> {
     );
   }
 
-  // 🔥 HOME CONTENT DIPISAH (BIAR RAPI)
+  // ================= HOME =================
   Widget _buildHomeContent() {
     return Column(
       children: [
@@ -138,26 +136,9 @@ class _UserHomeState extends State<UserHome> {
 
                 _buildMenu(),
 
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
 
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Pesanan Aktif",
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                _orderCard("Ayam Geprek", "Diproses"),
-                _orderCard("Paket Hemat", "Selesai"),
+                _buildOrderSection(),
 
                 const SizedBox(height: 100),
               ],
@@ -168,52 +149,7 @@ class _UserHomeState extends State<UserHome> {
     );
   }
 
-  // ================= NAV ITEM =================
-  Widget _navItem(IconData icon, int index) {
-    final isActive = selectedIndex == index;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedIndex = index;
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        margin: const EdgeInsets.symmetric(horizontal: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isActive
-              ? const Color(0xFF61100D).withOpacity(0.1)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Icon(
-          icon,
-          size: 26,
-          color: isActive
-              ? const Color(0xFF61100D)
-              : Colors.grey,
-        ),
-      ),
-    );
-  }
-
-  // ================= LOGOUT =================
-  Widget _logoutItem() {
-    return GestureDetector(
-      onTap: () async {
-        await FirebaseAuth.instance.signOut();
-        Navigator.pop(context);
-      },
-      child: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8),
-        child: Icon(Icons.logout, color: Colors.grey),
-      ),
-    );
-  }
-
-  // ================= NAVBAR ATAS =================
+  // ================= NAVBAR =================
   Widget _buildNavbar() {
     return Container(
       width: double.infinity,
@@ -237,40 +173,21 @@ class _UserHomeState extends State<UserHome> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-
-          _quickItem(
-            icon: Icons.restaurant,
-            label: "Pesan\nsekarang",
-            onTap: () {
-              setState(() => selectedIndex = 1);
-            },
-          ),
-
-          _quickItem(
-            icon: Icons.menu_book,
-            label: "Lihat menu",
-            onTap: () {
-              setState(() => selectedIndex = 1);
-            },
-          ),
-
-          _quickItem(
-            icon: Icons.access_time,
-            label: "Status\npesanan",
-            onTap: () {
-              setState(() => selectedIndex = 2);
-            },
-          ),
+          _quickItem(Icons.restaurant, "Pesan\nsekarang", () {
+            setState(() => selectedIndex = 1);
+          }),
+          _quickItem(Icons.menu_book, "Lihat menu", () {
+            setState(() => selectedIndex = 1);
+          }),
+          _quickItem(Icons.access_time, "Status\npesanan", () {
+            setState(() => selectedIndex = 2);
+          }),
         ],
       ),
     );
   }
 
-  Widget _quickItem({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
+  Widget _quickItem(IconData icon, String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -284,155 +201,187 @@ class _UserHomeState extends State<UserHome> {
             child: Icon(icon, color: const Color(0xFF61100D)),
           ),
           const SizedBox(height: 6),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(fontSize: 12),
-          ),
+          Text(label, textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(fontSize: 12)),
         ],
       ),
     );
-  }  
+  }
 
-  // ================= MENU =================
+  // ================= MENU CARD BESAR =================
   Widget _buildMenu() {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Column(
-      children: [
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 10,
+            color: Colors.black.withOpacity(0.05),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
 
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            "Menu Pilihan",
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
+          // 🔥 HEADER (JUDUL + LIHAT SEMUA)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Menu Pilihan",
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedIndex = 1; // 🔥 pindah ke menu bawah
+                  });
+                },
+                child: Text(
+                  "Lihat menu lainnya",
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFF61100D),
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
 
-        const SizedBox(height: 15),
+          const SizedBox(height: 12),
 
-        StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance.collection('packages').snapshots(),
-          builder: (context, snapshot) {
+          // 🔥 LIST MENU (BISA DIGESER)
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('packages')
+                .snapshots(),
+            builder: (context, snapshot) {
 
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-            final docs = snapshot.data!.docs;
+              final docs = snapshot.data!.docs;
 
-            return SizedBox(
-              height: 190, // 🔥 DIBESARIN
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: docs.map((doc) {
+              return SizedBox(
+                height: 170,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: docs.length,
+                  itemBuilder: (context, index) {
 
-                  final data = doc.data() as Map<String, dynamic>;
+                    final data = docs[index].data() as Map<String, dynamic>;
 
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => MenuDetailPage(
-                            name: data['name'] ?? '',
-                            price: data['price'] ?? 0,
-                            image: data['image_url'] ?? '',
-                            description: data['description'] ?? '',
-                          ),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      width: 160, // 🔥 DIBESARIN
+                    final image = data['image_url'] ?? "";
+                    final name = data['name'] ?? "Menu";
+
+                    return Container(
+                      width: 150,
                       margin: const EdgeInsets.only(right: 12),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            blurRadius: 8,
-                            color: Colors.black.withOpacity(0.08),
-                          ),
-                        ],
+                        color: const Color(0xFFF5E6DA),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
 
                           // 🔥 IMAGE
-                          ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(14),
-                            ),
-                            child: data['image_url'] != ""
-                                ? Image.network(
-                                    data['image_url'],
-                                    height: 110,
+                          image.isNotEmpty
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.network(
+                                    image,
+                                    height: 90,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
-                                  )
-                                : Container(
-                                    height: 110,
+                                  ),
+                                )
+                              : Container(
+                                  height: 90,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
                                     color: Colors.grey[300],
-                                    child: const Center(child: Icon(Icons.image)),
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
-                          ),
-
-                          Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-
-                                // 🔥 NAMA
-                                Text(
-                                  data['name'] ?? '',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  child: const Icon(Icons.image),
                                 ),
 
-                                const SizedBox(height: 4),
+                          const SizedBox(height: 8),
 
-                                // 🔥 HARGA
-                                Text(
-                                  "Rp ${data['price'] ?? 0}",
-                                  style: const TextStyle(
-                                    color: Color(0xFF61100D),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                          // 🔥 NAMA MENU
+                          Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  );
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
-                }).toList(),
-              ),
-            );
-          },
-        ),
-      ],
-    ),
-  );
-}
-
-  // ================= ORDER =================
-  Widget _orderCard(String title, String status) {
+  // ================= ORDER CARD BESAR =================
+  Widget _buildOrderSection() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 10,
+            color: Colors.black.withOpacity(0.05),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          Text("Pesanan Aktif",
+              style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18)),
+
+          const SizedBox(height: 12),
+
+          _orderCard("Ayam Geprek", "Diproses"),
+          _orderCard("Paket Hemat", "Selesai"),
+        ],
+      ),
+    );
+  }
+
+  // ================= ORDER ITEM =================
+  Widget _orderCard(String title, String status) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5E6DA),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -446,6 +395,44 @@ class _UserHomeState extends State<UserHome> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ================= NAV =================
+  Widget _navItem(IconData icon, int index) {
+    final isActive = selectedIndex == index;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() => selectedIndex = index);
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isActive
+              ? const Color(0xFF61100D).withOpacity(0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Icon(
+          icon,
+          color: isActive ? const Color(0xFF61100D) : Colors.grey,
+        ),
+      ),
+    );
+  }
+
+  Widget _logoutItem() {
+    return GestureDetector(
+      onTap: () async {
+        await FirebaseAuth.instance.signOut();
+        Navigator.pop(context);
+      },
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8),
+        child: Icon(Icons.logout, color: Colors.grey),
       ),
     );
   }
