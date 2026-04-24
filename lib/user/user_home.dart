@@ -1,5 +1,3 @@
-//ada card-card
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../landing/menu_page.dart';
 import 'user_history.dart';
 import 'user_profile.dart';
+import 'user_cart.dart';
 
 class UserHome extends StatefulWidget {
   const UserHome({super.key});
@@ -24,6 +23,7 @@ class _UserHomeState extends State<UserHome> {
     const MenuPage(),
     const HistoryPage(),
     const UserProfile(),
+    const CartPage(),
   ];
 
   String getGreeting() {
@@ -176,12 +176,10 @@ class _UserHomeState extends State<UserHome> {
           _quickItem(Icons.restaurant, "Pesan\nsekarang", () {
             setState(() => selectedIndex = 1);
           }),
-          _quickItem(Icons.menu_book, "Lihat menu", () {
-            setState(() => selectedIndex = 1);
-          }),
           _quickItem(Icons.access_time, "Status\npesanan", () {
             setState(() => selectedIndex = 2);
           }),
+          _cartItem(),
         ],
       ),
     );
@@ -205,6 +203,79 @@ class _UserHomeState extends State<UserHome> {
               style: GoogleFonts.poppins(fontSize: 12)),
         ],
       ),
+    );
+  }
+
+  Widget _cartItem() {
+    final user = FirebaseAuth.instance.currentUser;
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('carts')
+          .where('user_id', isEqualTo: user?.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+
+        int count = 0;
+
+        if (snapshot.hasData) {
+          count = snapshot.data!.docs.length;
+        }
+
+        return GestureDetector(
+          onTap: () {
+            setState(() => selectedIndex = 4);
+          },
+          child: Column(
+            children: [
+
+              Stack(
+                children: [
+
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.shopping_cart,
+                        color: Color(0xFF61100D)),
+                  ),
+
+                  // 🔥 BADGE ANGKA
+                  if (count > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          "$count",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+
+              const SizedBox(height: 6),
+
+              Text(
+                "Keranjang",
+                style: GoogleFonts.poppins(fontSize: 12),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
