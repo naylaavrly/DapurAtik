@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'admin_dashboard.dart';
 import 'admin_paket_page.dart';
 import 'admin_user_page.dart';
+import 'admin_order_page.dart';
 
 class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
