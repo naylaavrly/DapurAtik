@@ -15,12 +15,12 @@ class _AdminHomeState extends State<AdminHome> {
   int selectedIndex = 0;
 
   // ================= LIST HALAMAN =================
-  final List<Widget> pages = [
-    const AdminDashboard(), // 0
-    const AdminPaketPage(), // 1
-    const Center(child: Text("Halaman Pengiriman")), // 2
-    const AdminUserPage(), // 3 → 🔥 PUNYA KAMU
-  ];
+final List<Widget> pages = [
+  const AdminDashboard(),
+  const AdminPaketPage(),
+  const AdminOrderPage(),
+  const AdminUserPage(),
+];
 
   @override
   Widget build(BuildContext context) {
