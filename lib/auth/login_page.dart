@@ -80,15 +80,15 @@ class _LoginPageState extends State<LoginPage> {
             errorMessage = "Email atau Password salah, Coba Lagi";
         }
       });
+} catch (e) {
+  print("LOGIN ERROR: $e");
 
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-        errorMessage = "Terjadi kesalahan";
-      });
-    }
-  }
-
+  setState(() {
+    isLoading = false;
+    errorMessage = e.toString();
+  });
+}
+}
   @override
   void dispose() {
     emailController.dispose();

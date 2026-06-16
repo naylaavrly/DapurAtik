@@ -163,7 +163,7 @@ class _AdminDashboardState extends State<AdminDashboard>
                 surfaceTintColor: Colors.transparent,
                 flexibleSpace: FlexibleSpaceBar(
                   background: _buildHeader(),
-                  collapseMode: CollapseMode.fade,
+                  collapseMode: CollapseMode.parallax,
                 ),
                 bottom: PreferredSize(
                   preferredSize: const Size.fromHeight(1),
@@ -448,17 +448,21 @@ class _AdminDashboardState extends State<AdminDashboard>
                 ),
                 borderData: FlBorderData(show: false),
                 lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    tooltipBgColor: AppColors.primary,
-                    tooltipRoundedRadius: 10,
-                    getTooltipItems: (touchedSpots) => touchedSpots.map((s) {
-                      return LineTooltipItem(
-                        "${s.y.toInt()} pesanan",
-                        const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
-                      );
-                    }).toList(),
-                  ),
+                touchTooltipData: LineTouchTooltipData(
+                  getTooltipColor: (touchedSpot) => AppColors.primary,
+                  tooltipRoundedRadius: 10,
+                  getTooltipItems: (touchedSpots) => touchedSpots.map((s) {
+                    return LineTooltipItem(
+                      "${s.y.toInt()} pesanan",
+                      const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    );
+                  }).toList(),
                 ),
+              ),
                 lineBarsData: [
                   LineChartBarData(
                     spots: spots,
