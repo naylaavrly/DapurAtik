@@ -54,6 +54,9 @@ class _KeranjangPageState extends State<KeranjangPage> {
 
   Future<void> _pickDate(String docId, String type, int? leadTime) async {
     final minDate = _minDate(type, leadTime);
+    final today = DateTime.now();
+    final todayOnly = DateTime(today.year, today.month, today.day);
+
     final picked = await showDatePicker(
       context: context,
       initialDate: minDate,
@@ -69,7 +72,32 @@ class _KeranjangPageState extends State<KeranjangPage> {
         child: child!,
       ),
     );
-    if (picked != null) setState(() => _selectedDates[docId] = picked);
+
+    if (picked != null) {
+      final pickedOnly = DateTime(picked.year, picked.month, picked.day);
+      final selisihHari = pickedOnly.difference(todayOnly).inDays;
+      final minHari = minDate.difference(todayOnly).inDays;
+
+      if (selisihHari < minHari) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Paket ini hanya bisa dipesan min H-$minHari dari tanggal acara.',
+                style: GoogleFonts.poppins(fontSize: 13),
+              ),
+              backgroundColor: Colors.red[700],
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+        return; // tanggal tidak disimpan
+      }
+
+      setState(() => _selectedDates[docId] = picked);
+    }
   }
 
   void _showDataDiriDialog(VoidCallback onSaved) {
@@ -493,10 +521,21 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                                         fontSize: 12,
                                                         fontWeight: FontWeight.w600)),
                                                 if (type.isNotEmpty)
-                                                  Text(_labelMinDate(type, leadTime),
+                                                  Container(
+                                                    margin: const EdgeInsets.only(top: 2),
+                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.orange.withOpacity(0.12),
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: Text(
+                                                      '⏱ ${_labelMinDate(type, leadTime)} sebelum acara',
                                                       style: GoogleFonts.poppins(
                                                           fontSize: 10,
-                                                          color: Colors.grey[500])),
+                                                          color: Colors.orange[800],
+                                                          fontWeight: FontWeight.w500),
+                                                    ),
+                                                  ),
                                                 Text(
                                                     'Subtotal: ${formatRupiah(_toInt(data['total_price']))}',
                                                     style: GoogleFonts.poppins(
