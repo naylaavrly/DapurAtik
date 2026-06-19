@@ -421,6 +421,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                     ? _toInt(data['lead_time'])
                                     : null;
                                 final int qty = _toInt(data['qty']);
+                                final int minOrder = _toInt(data['min_order']);
 
                                 // Init controller qty
                                 if (!_qtyControllers.containsKey(docId)) {
@@ -483,7 +484,10 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                                         fontWeight: FontWeight.bold,
                                                         fontSize: 13)),
                                                 const SizedBox(height: 2),
-                                                Text('${formatRupiah(price)} / porsi',
+                                                Text(
+                                                    minOrder > 0
+                                                        ? '${formatRupiah(price)} / $minOrder porsi'
+                                                        : '${formatRupiah(price)} / porsi',
                                                     style: GoogleFonts.poppins(
                                                         color: _primary,
                                                         fontSize: 12,
