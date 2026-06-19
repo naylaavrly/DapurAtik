@@ -23,7 +23,7 @@ class _UserHomeState extends State<UserHome> {
     const MenuPage(),
     const HistoryPage(),
     const UserProfile(),
-    const CartPage(),
+    const KeranjangPage(),
   ];
 
   String getGreeting() {

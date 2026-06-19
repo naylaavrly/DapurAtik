@@ -4,14 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 class MenuDetailPage extends StatelessWidget {
   final String name;
   final int price;
-  final String image;
   final String description;
 
   const MenuDetailPage({
     super.key,
     required this.name,
     required this.price,
-    required this.image,
     required this.description,
   });
 
@@ -30,36 +28,25 @@ class MenuDetailPage extends StatelessWidget {
       body: Column(
         children: [
 
-          // 🔥 IMAGE
-          Stack(
-            children: [
-              Image.network(
-                image,
-                height: 300,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-
-              Positioned(
-                top: 40,
-                left: 10,
-                child: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
+          // 🔥 NAVBAR
+          _buildNavbar(context),
 
           // 🔥 CONTENT
           Expanded(
             child: Container(
+              width: double.infinity,
+              margin: const EdgeInsets.all(20),
               padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,12 +73,17 @@ class MenuDetailPage extends StatelessWidget {
 
                   const SizedBox(height: 15),
 
+                  const Divider(),
+
+                  const SizedBox(height: 10),
+
                   Text(
                     description.isEmpty
                         ? "Menu lezat dengan cita rasa terbaik 🍽️"
                         : description,
                     style: GoogleFonts.poppins(
                       color: Colors.grey[700],
+                      height: 1.6,
                     ),
                   ),
 
@@ -103,11 +95,17 @@ class MenuDetailPage extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF61100D),
                         padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       onPressed: () {},
-                      child: const Text(
+                      child: Text(
                         "Masukkan Keranjang",
-                        style: TextStyle(color: Colors.white),
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   )
@@ -115,6 +113,34 @@ class MenuDetailPage extends StatelessWidget {
               ),
             ),
           )
+        ],
+      ),
+    );
+  }
+
+  // ================= NAVBAR =================
+  Widget _buildNavbar(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+      color: const Color(0xFF61100D),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            "Detail Paket",
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
         ],
       ),
     );
