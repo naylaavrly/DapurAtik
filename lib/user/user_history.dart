@@ -32,7 +32,7 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5EFE6),
+      backgroundColor: const Color(0xFFF5E6DA),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -56,11 +56,11 @@ class _HistoryPageState extends State<HistoryPage> {
 
           // ================= TAB Chips =================
           Container(
-            color: const Color(0xFFF5EFE6),
+            color: const Color(0xFFF5E6DA),
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
                   _buildChipTab(0, 'Semua'),
@@ -155,10 +155,17 @@ class _HistoryPageState extends State<HistoryPage> {
             final data =
                 doc.data() as Map<String, dynamic>;
 
-            return data['status']
-                    .toString()
-                    .toLowerCase() ==
-                status;
+            final orderStatus =
+              data['status']
+                  ?.toString()
+                  .toLowerCase()
+                  .trim() ?? '';
+
+            if (status == 'menunggu') {
+              return orderStatus.contains('menunggu');
+            }
+
+          return orderStatus.contains(status);
           }).toList();
         }
 
@@ -183,11 +190,26 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget _buildOrderCard(
   Map<String, dynamic> order) {
 
+    final items =
+    (order['items'] as List<dynamic>? ?? []);
+
+    final firstItem =
+        items.isNotEmpty
+            ? items[0] as Map<String, dynamic>
+            : {};
+
+    final Timestamp? tanggalAcara =
+    firstItem['tanggal_acara'] as Timestamp?;
+
+    final String tanggalAcaraText =
+        tanggalAcara != null
+            ? "${tanggalAcara.toDate().day}/${tanggalAcara.toDate().month}/${tanggalAcara.toDate().year}"
+            : "-";
+
     return Container(
-      margin: const EdgeInsets.only(
-        left: 12,
-        right: 12,
-        bottom: 12,
+      margin: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -208,7 +230,7 @@ class _HistoryPageState extends State<HistoryPage> {
             children: [
 
               Text(
-                order['id'] ?? '',
+                "Acara: $tanggalAcaraText",
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: Colors.grey,
@@ -231,21 +253,12 @@ class _HistoryPageState extends State<HistoryPage> {
               ClipRRect(
                 borderRadius:
                     BorderRadius.circular(8),
-                child: order['image_url'] != null
-                    ? Image.network(
-                        order['image_url'],
-                        width: 60,
-                        height: 60,
-                        fit: BoxFit.cover,
-                      )
-                    : Container(
-                        width: 60,
-                        height: 60,
-                        color: Colors.grey[200],
-                        child: const Icon(
-                          Icons.image,
-                        ),
-                      ),
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.restaurant_menu),
+                ),
               ),
 
               const SizedBox(width: 12),
@@ -257,19 +270,16 @@ class _HistoryPageState extends State<HistoryPage> {
                   children: [
 
                     Text(
-                      order['product_name'] ?? '',
-                      style:
-                          GoogleFonts.poppins(
+                      "${firstItem['name'] ?? 'Produk'}",
+                      style: GoogleFonts.poppins(
                         fontSize: 15,
-                        fontWeight:
-                            FontWeight.w500,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
 
                     Text(
-                      "${order['qty']} box",
-                      style:
-                          GoogleFonts.poppins(
+                      "${firstItem['qty'] ?? 0} box",
+                      style: GoogleFonts.poppins(
                         color: Colors.grey,
                       ),
                     ),
@@ -287,17 +297,9 @@ class _HistoryPageState extends State<HistoryPage> {
             children: [
 
               Text(
-                "Rp ${order['total_price']}",
+                "Rp ${order['grand_total'] ?? 0}",
                 style: GoogleFonts.poppins(
-                  fontWeight:
-                      FontWeight.bold,
-                ),
-              ),
-
-              OutlinedButton(
-                onPressed: () {},
-                child: const Text(
-                  "Detail",
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
@@ -312,27 +314,32 @@ class _HistoryPageState extends State<HistoryPage> {
     Color textColor;
     String label;
 
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'selesai':
         bgColor = const Color(0xFFEAF3DE);
         textColor = const Color(0xFF3B6D11);
         label = 'Selesai';
         break;
+
       case 'diproses':
         bgColor = const Color(0xFFFAEEDA);
         textColor = const Color(0xFF854F0B);
         label = 'Diproses';
         break;
+
       case 'menunggu':
+      case 'menunggu konfirmasi':
         bgColor = const Color(0xFFE6F1FB);
         textColor = const Color(0xFF185FA5);
         label = 'Menunggu';
         break;
+
       case 'dibatalkan':
         bgColor = const Color(0xFFFCEBEB);
         textColor = const Color(0xFFA32D2D);
         label = 'Dibatalkan';
         break;
+
       default:
         bgColor = Colors.grey.shade100;
         textColor = Colors.grey;
