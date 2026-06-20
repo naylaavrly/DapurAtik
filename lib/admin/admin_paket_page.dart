@@ -53,6 +53,18 @@ class KategoriModel {
   }
 }
 
+// ================= HELPER FORMAT RUPIAH =================
+String _formatRupiah(dynamic val) {
+  final n = (val is int) ? val : (int.tryParse('$val') ?? 0);
+  final str = n.toString();
+  final buffer = StringBuffer();
+  for (int i = 0; i < str.length; i++) {
+    if (i > 0 && (str.length - i) % 3 == 0) buffer.write('.');
+    buffer.write(str[i]);
+  }
+  return 'Rp ${buffer.toString()}';
+}
+
 // ================= PAGE =================
 class AdminPaketPage extends StatefulWidget {
   const AdminPaketPage({super.key});
@@ -560,7 +572,7 @@ class _AdminPaketPageState extends State<AdminPaketPage> {
                                                       const SizedBox(
                                                           width: 6),
                                                       Text(
-                                                        'Rp $harga',
+                                                        _formatRupiah(harga),
                                                         style:
                                                             const TextStyle(
                                                           fontSize: 13,
@@ -609,28 +621,16 @@ class _AdminPaketPageState extends State<AdminPaketPage> {
                                                   const SizedBox(
                                                       height: 8),
 
-                                                  // Chip menu
+                                                  // Chip menu — tampilkan semua
                                                   Expanded(
-                                                    child: Wrap(
-                                                      spacing: 4,
-                                                      runSpacing: 4,
-                                                      children: [
-                                                        ...menu
-                                                            .take(3)
-                                                            .map(
-                                                              (e) =>
-                                                                  _MenuChip(
-                                                                      label:
-                                                                          e),
-                                                            ),
-                                                        if (extraMenu >
-                                                            0)
-                                                          _MenuChip(
-                                                              label:
-                                                                  '+$extraMenu lainnya',
-                                                              muted:
-                                                                  true),
-                                                      ],
+                                                    child: SingleChildScrollView(
+                                                      child: Wrap(
+                                                        spacing: 4,
+                                                        runSpacing: 4,
+                                                        children: menu
+                                                            .map((e) => _MenuChip(label: e))
+                                                            .toList(),
+                                                      ),
                                                     ),
                                                   ),
 
