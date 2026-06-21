@@ -1312,7 +1312,7 @@ class _AddPaketDialogState extends State<AddPaketDialog> {
               TextField(
                 controller: _minOrderCtrl,
                 keyboardType: TextInputType.number,
-                decoration: inputStyle('Min. pesanan (porsi)'),
+                decoration: inputStyle('Min. pesanan (paket)'),
               ),
               const SizedBox(height: 12),
               TextField(
@@ -1519,7 +1519,7 @@ class _EditPaketDialogState extends State<EditPaketDialog> {
               TextField(
                 controller: _minOrderCtrl,
                 keyboardType: TextInputType.number,
-                decoration: inputStyle('Min. pesanan (porsi)'),
+                decoration: inputStyle('Min. pesanan (paket)'),
               ),
               const SizedBox(height: 12),
               TextField(
