@@ -1513,7 +1513,7 @@ class _EditPaketDialogState extends State<EditPaketDialog> {
               TextField(
                 controller: _hargaCtrl,
                 keyboardType: TextInputType.number,
-                decoration: inputStyle('Harga per porsi (Rp)'),
+                decoration: inputStyle('Harga per paket (Rp)'),
               ),
               const SizedBox(height: 12),
               TextField(
