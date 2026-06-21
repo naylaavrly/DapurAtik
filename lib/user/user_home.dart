@@ -10,7 +10,13 @@ import 'user_profile.dart';
 import 'user_cart.dart';
 
 class UserHome extends StatefulWidget {
-  const UserHome({super.key});
+  // -------------------------------------------------------
+  // PARAMETER: index halaman awal yang ditampilkan
+  // default 0 (home), kirim 2 untuk langsung ke HistoryPage
+  // -------------------------------------------------------
+  final int initialIndex;
+
+  const UserHome({super.key, this.initialIndex = 0});
 
   @override
   State<UserHome> createState() => _UserHomeState();
@@ -21,7 +27,14 @@ class _UserHomeState extends State<UserHome> {
   // ============================================================
   // STATE: index halaman yang sedang aktif di bottom nav
   // ============================================================
-  int selectedIndex = 0;
+  late int selectedIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set selectedIndex dari parameter initialIndex yang diterima
+    selectedIndex = widget.initialIndex;
+  }
 
   // ============================================================
   // KONSTANTA WARNA
@@ -422,9 +435,13 @@ class _UserHomeState extends State<UserHome> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => MenuDetailPage(
+                              packageId: docs[index].id,
                               name: name,
                               price: price,
                               description: description,
+                              type: data['type']?.toString() ?? '',
+                              leadTime: leadTime,
+                              minOrder: minOrder,
                             ),
                           ),
                         );

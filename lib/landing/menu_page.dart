@@ -13,10 +13,17 @@ class MenuPage extends StatefulWidget {
 }
 
 class _MenuPageState extends State<MenuPage> {
+
+  // ============================================================
+  // STATE: kata kunci pencarian menu
+  // ============================================================
   String searchQuery = "";
 
   static const Color _primary = Color(0xFF61100D);
 
+  // ============================================================
+  // HELPER: format angka ke Rupiah
+  // ============================================================
   String formatRupiah(int number) {
     return "Rp ${number.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
@@ -24,6 +31,9 @@ class _MenuPageState extends State<MenuPage> {
     )}";
   }
 
+  // ============================================================
+  // HELPER: konversi dynamic ke int
+  // ============================================================
   int _toInt(dynamic value) {
     if (value is int) return value;
     if (value is num) return value.toInt();
@@ -32,7 +42,9 @@ class _MenuPageState extends State<MenuPage> {
   }
 
   // ============================================================
-  // Tambah ke keranjang (Firestore collection: carts)
+  // FUNGSI: tambah paket ke collection 'carts' di Firestore
+  //   - Kalau sudah ada → increment qty
+  //   - Kalau belum ada → buat dokumen baru
   // ============================================================
   Future<void> _addToCart({
     required String packageId,
@@ -45,14 +57,14 @@ class _MenuPageState extends State<MenuPage> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login terlebih dahulu untuk menambah ke keranjang.')),
+        const SnackBar(content: Text('Login terlebih dahulu.')),
       );
       return;
     }
 
     final cartsRef = FirebaseFirestore.instance.collection('carts');
 
-    // Cek apakah item dari paket yang sama sudah ada di keranjang user ini
+    // Cek apakah paket ini sudah ada di keranjang user
     final existing = await cartsRef
         .where('user_id', isEqualTo: user.uid)
         .where('package_id', isEqualTo: packageId)
@@ -62,7 +74,7 @@ class _MenuPageState extends State<MenuPage> {
     if (existing.docs.isNotEmpty) {
       // Sudah ada → tambah qty
       final doc = existing.docs.first;
-      final currentQty = (doc['qty'] ?? 1) as int;
+      final currentQty = (doc['qty'] as num?)?.toInt() ?? 1;
       final newQty = currentQty + 1;
       await cartsRef.doc(doc.id).update({
         'qty': newQty,
@@ -95,13 +107,18 @@ class _MenuPageState extends State<MenuPage> {
     }
   }
 
+  // ============================================================
+  // BUILD: halaman katalog menu
+  // ============================================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5E6DA),
       body: Column(
         children: [
+          // Navbar — style sama dengan user_home (horizontal: 30)
           _buildNavbar(context),
+
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -113,11 +130,16 @@ class _MenuPageState extends State<MenuPage> {
 
                 return Column(
                   children: [
-                    // 🔍 SEARCH
+
+                    // ----------------------------------------
+                    // SEARCH BAR: filter paket berdasarkan nama
+                    // ----------------------------------------
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 20),
                       child: TextField(
-                        onChanged: (v) => setState(() => searchQuery = v.toLowerCase()),
+                        onChanged: (v) =>
+                            setState(() => searchQuery = v.toLowerCase()),
                         decoration: InputDecoration(
                           hintText: "Cari paket...",
                           prefixIcon: const Icon(Icons.search),
@@ -133,39 +155,51 @@ class _MenuPageState extends State<MenuPage> {
 
                     const SizedBox(height: 10),
 
-                    // 🔥 LIST PACKAGE
+                    // ----------------------------------------
+                    // GRID PAKET: stream dari collection 'packages'
+                    // ----------------------------------------
                     Expanded(
                       child: StreamBuilder<QuerySnapshot>(
                         stream: FirebaseFirestore.instance
                             .collection('packages')
+                            .orderBy('type')
                             .snapshots(),
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Center(child: CircularProgressIndicator());
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
                           }
                           if (snapshot.hasError) {
-                            return Center(child: Text("Terjadi error: ${snapshot.error}"));
+                            return Center(
+                                child: Text("Error: ${snapshot.error}"));
                           }
                           if (!snapshot.hasData) {
-                            return const Center(child: Text("Tidak ada data"));
+                            return const Center(
+                                child: Text("Tidak ada data"));
                           }
 
+                          // Filter berdasarkan searchQuery
                           final menus = snapshot.data!.docs.where((doc) {
-                            final data = doc.data() as Map<String, dynamic>;
-                            final name = (data['name'] ?? "").toString().toLowerCase();
+                            final data =
+                                doc.data() as Map<String, dynamic>;
+                            final name =
+                                (data['name'] ?? "").toString().toLowerCase();
                             return name.contains(searchQuery);
                           }).toList();
 
                           if (menus.isEmpty) {
                             return Center(
-                              child: Text("Tidak ada paket 😢", style: GoogleFonts.poppins()),
+                              child: Text("Tidak ada paket 😢",
+                                  style: GoogleFonts.poppins()),
                             );
                           }
 
                           return GridView.builder(
                             padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
                             itemCount: menus.length,
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: crossAxisCount,
                               mainAxisSpacing: 15,
                               crossAxisSpacing: 15,
@@ -173,37 +207,50 @@ class _MenuPageState extends State<MenuPage> {
                             ),
                             itemBuilder: (context, index) {
                               final doc = menus[index];
-                              final data = doc.data() as Map<String, dynamic>;
+                              final data =
+                                  doc.data() as Map<String, dynamic>;
 
+                              // Ambil semua field yang dibutuhkan
                               final packageId = doc.id;
                               final name = data['name'] ?? '';
                               final price = _toInt(data['price']);
                               final minOrder = _toInt(data['min_order']);
                               final leadTime = _toInt(data['lead_time']);
-                              final type = data['type'] ?? '';
+                              final type = data['type']?.toString() ?? '';
 
                               final menuItemsRaw = data['menu_items'];
-                              final List<String> menuItems = menuItemsRaw is List
-                                  ? menuItemsRaw.map((e) => e.toString()).toList()
-                                  : <String>[];
+                              final List<String> menuItems =
+                                  menuItemsRaw is List
+                                      ? menuItemsRaw
+                                          .map((e) => e.toString())
+                                          .toList()
+                                      : <String>[];
 
+                              // Generate description dari field Firestore
                               final description = menuItems.isNotEmpty
                                   ? "Termasuk: ${menuItems.join(', ')}\n\n"
                                       "Minimal order: $minOrder porsi\n"
                                       "Lead time: $leadTime hari"
                                   : (data['description'] ?? '').toString();
 
+                              // ----------------------------------------
+                              // CARD: tap → buka MenuDetailPage
+                              //        tombol + → langsung tambah ke cart
+                              // ----------------------------------------
                               return InkWell(
                                 borderRadius: BorderRadius.circular(14),
-                                // Tap card → buka detail
                                 onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => MenuDetailPage(
+                                        packageId: packageId,
                                         name: name,
                                         price: price,
                                         description: description,
+                                        type: type,
+                                        leadTime: leadTime,
+                                        minOrder: minOrder,
                                       ),
                                     ),
                                   );
@@ -212,7 +259,6 @@ class _MenuPageState extends State<MenuPage> {
                                   name: name,
                                   price: price,
                                   menuItems: menuItems,
-                                  // Tap tombol + → tambah ke keranjang
                                   onAddToCart: () => _addToCart(
                                     packageId: packageId,
                                     name: name,
@@ -238,11 +284,15 @@ class _MenuPageState extends State<MenuPage> {
     );
   }
 
-  // ================= NAVBAR =================
+  // ============================================================
+  // WIDGET: navbar — padding disesuaikan dengan user_home
+  //         (horizontal: 30, vertical: 20)
+  //         + ikon keranjang dengan badge jumlah item real-time
+  // ============================================================
   Widget _buildNavbar(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 11.5),
       color: _primary,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -256,20 +306,22 @@ class _MenuPageState extends State<MenuPage> {
             ),
           ),
 
-          // 🛒 Tombol keranjang dengan badge jumlah item
+          // Ikon keranjang + badge jumlah item
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseAuth.instance.currentUser == null
                 ? null
                 : FirebaseFirestore.instance
                     .collection('carts')
                     .where('user_id',
-                        isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+                        isEqualTo:
+                            FirebaseAuth.instance.currentUser!.uid)
                     .snapshots(),
             builder: (context, snapshot) {
               final count = snapshot.data?.docs.length ?? 0;
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
+                  // Tombol keranjang — buka KeranjangPage
                   IconButton(
                     icon: const Icon(Icons.shopping_cart_outlined,
                         color: Colors.white, size: 26),
@@ -281,6 +333,7 @@ class _MenuPageState extends State<MenuPage> {
                       );
                     },
                   ),
+                  // Badge merah jumlah item (tampil kalau count > 0)
                   if (count > 0)
                     Positioned(
                       top: 4,
@@ -309,7 +362,12 @@ class _MenuPageState extends State<MenuPage> {
     );
   }
 
-  // ================= CARD =================
+  // ============================================================
+  // WIDGET CARD: tampilan satu paket di grid
+  //   - Tap card → buka detail (onTap di InkWell)
+  //   - Tap tombol + → tambah ke keranjang (onAddToCart)
+  //     GestureDetector terpisah agar tidak trigger onTap card
+  // ============================================================
   Widget _menuCard({
     required String name,
     required int price,
@@ -332,6 +390,8 @@ class _MenuPageState extends State<MenuPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+
+          // Nama paket
           Text(
             name,
             style: GoogleFonts.poppins(
@@ -345,19 +405,18 @@ class _MenuPageState extends State<MenuPage> {
 
           const SizedBox(height: 6),
 
+          // Daftar isi menu
           if (menuItems.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                menuItems.join(', '),
-                style: TextStyle(color: Colors.grey[600], fontSize: 11),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
+            Text(
+              menuItems.join(', '),
+              style: TextStyle(color: Colors.grey[600], fontSize: 11),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
 
           const Spacer(),
 
+          // Harga + tombol tambah ke keranjang
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -368,8 +427,7 @@ class _MenuPageState extends State<MenuPage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
-              // ✅ GestureDetector terpisah agar tidak trigger onTap card
+              // Tombol + — GestureDetector terpisah dari card tap
               GestureDetector(
                 onTap: onAddToCart,
                 child: Container(

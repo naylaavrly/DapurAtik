@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../landing/landing_page.dart'; // ← tambahan: untuk navigasi setelah logout
+
 // ── Design tokens (sama dengan dashboard)
 const Color primary    = Color(0xFF7A1C1C);
 const Color primarySoft= Color(0xFFFFF0F0);
@@ -280,7 +282,6 @@ class _AdminProfileState extends State<AdminProfile> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Step 1: verifikasi password lama
                     _stepBadge('1', 'Verifikasi password lama'),
                     const SizedBox(height: 10),
                     TextField(
@@ -612,6 +613,10 @@ class _AdminProfileState extends State<AdminProfile> {
         ],
       );
 
+  // ============================================================
+  // FUNGSI: dialog konfirmasi logout
+  // FIX: setelah signOut navigasi ke Landingpage
+  // ============================================================
   void _confirmLogout(BuildContext context) {
     showDialog(
       context: context,
@@ -619,19 +624,27 @@ class _AdminProfileState extends State<AdminProfile> {
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16)),
         title: const Text('Keluar dari Akun'),
-        content: const Text(
-            'Yakin ingin logout dari akun admin ini?'),
+        content: const Text('Yakin ingin logout dari akun admin ini?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Batal')),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white),
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(context); // tutup dialog dulu
               await FirebaseAuth.instance.signOut();
+              if (mounted) {
+                // Navigasi ke landing page, hapus semua route sebelumnya
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const Landingpage()),
+                  (route) => false,
+                );
+              }
             },
             child: const Text('Logout'),
           ),

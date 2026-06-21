@@ -4,9 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// ============================================================
-// IMPORT halaman user_home
-// ============================================================
 import 'user_home.dart';
 
 class KeranjangPage extends StatefulWidget {
@@ -18,28 +15,16 @@ class KeranjangPage extends StatefulWidget {
 
 class _KeranjangPageState extends State<KeranjangPage> {
 
-  // ============================================================
-  // STATE: menyimpan tanggal acara & controller qty per item cart
-  // ============================================================
   final Map<String, DateTime?> _selectedDates = {};
   final Map<String, TextEditingController> _qtyControllers = {};
 
-  // ============================================================
-  // STATE: data diri pemesan (nama, telepon, alamat)
-  // ============================================================
   String _namaPemesan = '';
   String _noTelpon = '';
   String _alamat = '';
 
-  // ============================================================
-  // KONSTANTA WARNA
-  // ============================================================
   static const Color _primary = Color(0xFF61100D);
   static const Color _bgColor = Color(0xFFF5E6DA);
 
-  // ============================================================
-  // HELPER: format angka ke format Rupiah (Rp 1.000.000)
-  // ============================================================
   String formatRupiah(int number) {
     return "Rp ${number.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
@@ -47,9 +32,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
     )}";
   }
 
-  // ============================================================
-  // HELPER: konversi dynamic (int/double/String) ke int
-  // ============================================================
   int _toInt(dynamic value) {
     if (value is int) return value;
     if (value is num) return value.toInt();
@@ -57,40 +39,27 @@ class _KeranjangPageState extends State<KeranjangPage> {
     return 0;
   }
 
-  // ============================================================
-  // HELPER: format DateTime ke string DD/MM/YYYY
-  // ============================================================
   String _formatDate(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 
-  // ============================================================
-  // HELPER: hitung tanggal minimum pemesanan berdasarkan
-  //         lead_time dari Firestore, atau fallback ke tipe paket
-  // ============================================================
   DateTime _minDate(String type, int? leadTime) {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     if (leadTime != null && leadTime > 0) {
-      return now.add(Duration(days: leadTime));
+      return today.add(Duration(days: leadTime));
     }
     if (type.toLowerCase() == 'hajatan') {
-      return now.add(const Duration(days: 90));
+      return today.add(const Duration(days: 90));
     }
-    return now.add(const Duration(days: 1));
+    return today.add(const Duration(days: 1));
   }
 
-  // ============================================================
-  // HELPER: teks label minimum pemesanan untuk ditampilkan di card
-  // ============================================================
   String _labelMinDate(String type, int? leadTime) {
     if (leadTime != null && leadTime > 0) return 'min H-$leadTime hari';
     if (type.toLowerCase() == 'hajatan') return 'min H-3 bulan';
     return 'min H-1';
   }
 
-  // ============================================================
-  // FUNGSI: buka date picker untuk memilih tanggal acara
-  //         validasi tanggal agar tidak kurang dari minDate
-  // ============================================================
   Future<void> _pickDate(String docId, String type, int? leadTime) async {
     final minDate = _minDate(type, leadTime);
     final today = DateTime.now();
@@ -100,7 +69,8 @@ class _KeranjangPageState extends State<KeranjangPage> {
       context: context,
       initialDate: minDate,
       firstDate: minDate,
-      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+      lastDate: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
+          .add(const Duration(days: 365 * 2)),
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: const ColorScheme.light(
@@ -117,9 +87,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
       final selisihHari = pickedOnly.difference(todayOnly).inDays;
       final minHari = minDate.difference(todayOnly).inDays;
 
-      // --------------------------------------------------------
-      // Validasi: tampilkan dialog error jika tanggal terlalu dekat
-      // --------------------------------------------------------
       if (selisihHari < minHari) {
         if (mounted) {
           showDialog(
@@ -164,14 +131,10 @@ class _KeranjangPageState extends State<KeranjangPage> {
         return;
       }
 
-      // Simpan tanggal yang dipilih ke state
       setState(() => _selectedDates[docId] = picked);
     }
   }
 
-  // ============================================================
-  // FUNGSI: buka dialog data diri, prefill dari state atau Firestore
-  // ============================================================
   Future<void> _openDataDiriDialog(VoidCallback onSaved) async {
     final user = FirebaseAuth.instance.currentUser;
 
@@ -179,7 +142,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
     String prefillPhone = _noTelpon;
     String prefillAlamat = _alamat;
 
-    // Kalau belum ada data di state, fetch dari collection 'users' di Firestore
     if (prefillName.isEmpty && user != null) {
       try {
         final doc = await FirebaseFirestore.instance
@@ -203,9 +165,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
     }
   }
 
-  // ============================================================
-  // WIDGET DIALOG: form isian data diri pemesan
-  // ============================================================
   void _showDataDiriDialog(
     VoidCallback onSaved, {
     String initName = '',
@@ -226,7 +185,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Field nama pemesan
               TextField(
                 controller: nameCtrl,
                 textCapitalization: TextCapitalization.words,
@@ -242,7 +200,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                 ),
               ),
               const SizedBox(height: 12),
-              // Field nomor telepon (hanya angka)
               TextField(
                 controller: telponCtrl,
                 keyboardType: TextInputType.phone,
@@ -259,7 +216,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                 ),
               ),
               const SizedBox(height: 12),
-              // Field alamat pengiriman (multi-line)
               TextField(
                 controller: alamatCtrl,
                 maxLines: 3,
@@ -280,12 +236,10 @@ class _KeranjangPageState extends State<KeranjangPage> {
           ),
         ),
         actions: [
-          // Tombol batal — tutup dialog tanpa menyimpan
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text('Batal', style: GoogleFonts.poppins(color: Colors.grey)),
           ),
-          // Tombol simpan — update state lalu jalankan callback
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: _primary,
@@ -308,22 +262,12 @@ class _KeranjangPageState extends State<KeranjangPage> {
     );
   }
 
-  // ============================================================
-  // FUNGSI: proses checkout
-  //   1. Validasi semua item sudah punya tanggal acara
-  //   2. Pastikan data diri sudah terisi
-  //   3. Simpan order ke collection 'orders' di Firestore
-  //   4. Hapus semua item dari collection 'carts'
-  //   5. Tampilkan invoice
-  // ============================================================
   void _doCheckout(List<QueryDocumentSnapshot> carts) async {
-    // Validasi keranjang tidak kosong
     if (carts.isEmpty) {
       _showSnack('Keranjang kosong.');
       return;
     }
 
-    // Validasi semua item sudah pilih tanggal acara
     for (var doc in carts) {
       if (_selectedDates[doc.id] == null) {
         final data = doc.data() as Map<String, dynamic>;
@@ -333,7 +277,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
       }
     }
 
-    // Validasi data diri sudah diisi — kalau belum, buka dialog dulu
     if (_namaPemesan.isEmpty || _noTelpon.isEmpty || _alamat.isEmpty) {
       await _openDataDiriDialog(() => _doCheckout(carts));
       return;
@@ -343,7 +286,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
     int grandTotal = 0;
     List<Map<String, dynamic>> items = [];
 
-    // Susun list item pesanan dari data cart
     for (var doc in carts) {
       final data = doc.data() as Map<String, dynamic>;
       final int qty = _toInt(data['qty']);
@@ -362,7 +304,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
       });
     }
 
-    // Simpan dokumen order baru ke Firestore
     final orderRef = FirebaseFirestore.instance.collection('orders').doc();
     await orderRef.set({
       'order_id': orderRef.id,
@@ -376,7 +317,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
       'created_at': Timestamp.now(),
     });
 
-    // Hapus semua item cart setelah order tersimpan
     for (var doc in carts) {
       await FirebaseFirestore.instance
           .collection('carts')
@@ -384,14 +324,12 @@ class _KeranjangPageState extends State<KeranjangPage> {
           .delete();
     }
 
-    // Reset state tanggal dan qty controller
     setState(() {
       _selectedDates.clear();
       _qtyControllers.forEach((_, c) => c.dispose());
       _qtyControllers.clear();
     });
 
-    // Tampilkan dialog invoice
     if (mounted) {
       _showInvoice(orderId: orderRef.id, items: items, grandTotal: grandTotal);
     }
@@ -415,7 +353,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header invoice — ikon centang + judul
+              // Header invoice
               Center(
                 child: Column(
                   children: [
@@ -439,7 +377,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
               _invoiceRow('Alamat', _alamat),
               const Divider(height: 20),
 
-              // Daftar item yang dipesan
+              // Daftar item
               Text('Pesanan:',
                   style: GoogleFonts.poppins(
                       fontWeight: FontWeight.bold, fontSize: 13)),
@@ -495,7 +433,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
               ),
               const SizedBox(height: 8),
 
-              // Status order
+              // Status
               Center(
                 child: Text('Status: Menunggu Konfirmasi',
                     style: GoogleFonts.poppins(
@@ -505,7 +443,12 @@ class _KeranjangPageState extends State<KeranjangPage> {
               ),
               const SizedBox(height: 16),
 
-              // Tombol selesai — tutup dialog invoice
+              // -------------------------------------------------------
+              // TOMBOL SELESAI:
+              // 1. Tutup dialog invoice
+              // 2. Navigasi ke UserHome dengan initialIndex: 2 (HistoryPage)
+              //    pushAndRemoveUntil agar stack bersih
+              // -------------------------------------------------------
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -514,7 +457,19 @@ class _KeranjangPageState extends State<KeranjangPage> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
-                  onPressed: () => Navigator.pop(ctx),
+                  onPressed: () {
+                    // Tutup dialog invoice dulu
+                    Navigator.pop(ctx);
+
+                    // Navigasi ke HistoryPage via UserHome(initialIndex: 2)
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const UserHome(initialIndex: 2),
+                      ),
+                      (route) => false,
+                    );
+                  },
                   child: Text('Selesai',
                       style: GoogleFonts.poppins(color: Colors.white)),
                 ),
@@ -526,9 +481,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
     );
   }
 
-  // ============================================================
-  // WIDGET HELPER: baris label-value untuk invoice
-  // ============================================================
   Widget _invoiceRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -552,17 +504,11 @@ class _KeranjangPageState extends State<KeranjangPage> {
     );
   }
 
-  // ============================================================
-  // HELPER: tampilkan snackbar pesan singkat
-  // ============================================================
   void _showSnack(String msg) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  // ============================================================
-  // DISPOSE: bersihkan semua TextEditingController qty
-  // ============================================================
   @override
   void dispose() {
     for (var c in _qtyControllers.values) {
@@ -571,9 +517,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
     super.dispose();
   }
 
-  // ============================================================
-  // BUILD: halaman utama keranjang
-  // ============================================================
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -582,32 +525,22 @@ class _KeranjangPageState extends State<KeranjangPage> {
       backgroundColor: _bgColor,
       body: Column(
         children: [
-          // Navbar dengan tombol back ke UserHomePage
           _buildNavbar(context),
-
           Expanded(
             child: user == null
                 ? const Center(child: Text('User belum login'))
                 : StreamBuilder<QuerySnapshot>(
-                    // ------------------------------------------------
-                    // STREAM: ambil item cart milik user yang sedang login
-                    // dari collection 'carts' di Firestore
-                    // ------------------------------------------------
                     stream: FirebaseFirestore.instance
                         .collection('carts')
                         .where('user_id', isEqualTo: user.uid)
                         .snapshots(),
                     builder: (context, snapshot) {
-                      // Tampilkan loading saat data belum siap
                       if (!snapshot.hasData) {
                         return const Center(child: CircularProgressIndicator());
                       }
 
                       final carts = snapshot.data!.docs;
 
-                      // ------------------------------------------------
-                      // STATE KOSONG: tampilkan ilustrasi keranjang kosong
-                      // ------------------------------------------------
                       if (carts.isEmpty) {
                         return Center(
                           child: Column(
@@ -624,7 +557,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                         );
                       }
 
-                      // Hitung grand total dari semua item cart
                       int grandTotal = 0;
                       for (var doc in carts) {
                         final data = doc.data() as Map<String, dynamic>;
@@ -633,9 +565,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
 
                       return Column(
                         children: [
-                          // ----------------------------------------
-                          // LIST: daftar card item di keranjang
-                          // ----------------------------------------
                           Expanded(
                             child: ListView.builder(
                               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -645,7 +574,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                 final data = doc.data() as Map<String, dynamic>;
                                 final docId = doc.id;
 
-                                // Ambil field-field dari dokumen cart
                                 final String name = data['name'] ?? '';
                                 final int price = _toInt(data['price']);
                                 final String type = data['type'] ?? '';
@@ -655,10 +583,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                 final int qty = _toInt(data['qty']);
                                 final int minOrder = _toInt(data['min_order']);
 
-                                // ----------------------------------------
-                                // INISIALISASI qty controller per item
-                                // supaya TextField qty sinkron dengan Firestore
-                                // ----------------------------------------
                                 if (!_qtyControllers.containsKey(docId)) {
                                   _qtyControllers[docId] =
                                       TextEditingController(text: '$qty');
@@ -674,9 +598,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                 final String? tglStr =
                                     tgl != null ? _formatDate(tgl) : null;
 
-                                // ----------------------------------------
-                                // CARD: tampilan satu item di keranjang
-                                // ----------------------------------------
                                 return Container(
                                   margin: const EdgeInsets.only(bottom: 14),
                                   padding: const EdgeInsets.all(14),
@@ -694,11 +615,9 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      // Baris atas: ikon + info paket + tombol hapus
                                       Row(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          // Ikon pengganti gambar (packages tidak punya image)
                                           Container(
                                             width: 75,
                                             height: 75,
@@ -712,19 +631,16 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                             ),
                                           ),
                                           const SizedBox(width: 12),
-                                          // Info nama, harga, tipe, subtotal
                                           Expanded(
                                             child: Column(
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                // Nama paket
                                                 Text(name,
                                                     style: GoogleFonts.poppins(
                                                         fontWeight: FontWeight.bold,
                                                         fontSize: 13)),
                                                 const SizedBox(height: 2),
-                                                // Harga per porsi / min order
                                                 Text(
                                                     minOrder > 0
                                                         ? '${formatRupiah(price)} / $minOrder porsi'
@@ -733,17 +649,14 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                                         color: _primary,
                                                         fontSize: 12,
                                                         fontWeight: FontWeight.w600)),
-                                                // Badge info min pemesanan
                                                 if (type.isNotEmpty)
                                                   Container(
                                                     margin: const EdgeInsets.only(top: 2),
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                            horizontal: 6, vertical: 2),
+                                                    padding: const EdgeInsets.symmetric(
+                                                        horizontal: 6, vertical: 2),
                                                     decoration: BoxDecoration(
                                                       color: Colors.orange.withOpacity(0.12),
-                                                      borderRadius:
-                                                          BorderRadius.circular(4),
+                                                      borderRadius: BorderRadius.circular(4),
                                                     ),
                                                     child: Text(
                                                       '⏱ ${_labelMinDate(type, leadTime)} sebelum acara',
@@ -753,7 +666,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                                           fontWeight: FontWeight.w500),
                                                     ),
                                                   ),
-                                                // Subtotal item ini
                                                 Text(
                                                     'Subtotal: ${formatRupiah(_toInt(data['total_price']))}',
                                                     style: GoogleFonts.poppins(
@@ -762,7 +674,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                               ],
                                             ),
                                           ),
-                                          // Tombol hapus item dari cart
                                           IconButton(
                                             icon: const Icon(Icons.delete_outline,
                                                 color: Colors.red, size: 20),
@@ -783,15 +694,11 @@ class _KeranjangPageState extends State<KeranjangPage> {
 
                                       const SizedBox(height: 12),
 
-                                      // ----------------------------------------
-                                      // KONTROL QTY: tombol -, input angka, tombol +
-                                      // ----------------------------------------
                                       Row(
                                         children: [
                                           Text('Jumlah:',
                                               style: GoogleFonts.poppins(fontSize: 12)),
                                           const SizedBox(width: 10),
-                                          // Tombol kurangi qty
                                           _qtyBtn('-', () async {
                                             if (qty > 1) {
                                               await FirebaseFirestore.instance
@@ -804,7 +711,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                             }
                                           }),
                                           const SizedBox(width: 6),
-                                          // TextField input qty langsung
                                           SizedBox(
                                             width: 50,
                                             height: 32,
@@ -818,19 +724,14 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                               style: GoogleFonts.poppins(fontSize: 13),
                                               decoration: InputDecoration(
                                                 contentPadding:
-                                                    const EdgeInsets.symmetric(
-                                                        vertical: 6),
+                                                    const EdgeInsets.symmetric(vertical: 6),
                                                 border: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(6),
-                                                  borderSide: const BorderSide(
-                                                      color: Colors.grey),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                  borderSide: const BorderSide(color: Colors.grey),
                                                 ),
                                                 focusedBorder: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(6),
-                                                  borderSide: const BorderSide(
-                                                      color: _primary),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                  borderSide: const BorderSide(color: _primary),
                                                 ),
                                               ),
                                               onSubmitted: (val) async {
@@ -847,7 +748,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                             ),
                                           ),
                                           const SizedBox(width: 6),
-                                          // Tombol tambah qty
                                           _qtyBtn('+', () async {
                                             await FirebaseFirestore.instance
                                                 .collection('carts')
@@ -862,9 +762,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
 
                                       const SizedBox(height: 12),
 
-                                      // ----------------------------------------
-                                      // PILIH TANGGAL ACARA: tekan untuk buka date picker
-                                      // ----------------------------------------
                                       GestureDetector(
                                         onTap: () => _pickDate(docId, type, leadTime),
                                         child: Container(
@@ -913,9 +810,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                             ),
                           ),
 
-                          // ----------------------------------------
-                          // BOTTOM BAR: total + tombol data diri + checkout
-                          // ----------------------------------------
                           Container(
                             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                             decoration: const BoxDecoration(
@@ -931,7 +825,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                             ),
                             child: Column(
                               children: [
-                                // Baris grand total
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
@@ -948,7 +841,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                   ],
                                 ),
                                 const SizedBox(height: 12),
-                                // Tombol isi/lihat data diri pemesan
                                 SizedBox(
                                   width: double.infinity,
                                   child: OutlinedButton.icon(
@@ -956,8 +848,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                       side: const BorderSide(color: _primary),
                                       shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(10)),
-                                      padding:
-                                          const EdgeInsets.symmetric(vertical: 12),
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
                                     ),
                                     icon: const Icon(Icons.person_outline,
                                         color: _primary, size: 18),
@@ -972,7 +863,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                   ),
                                 ),
                                 const SizedBox(height: 10),
-                                // Tombol checkout — validasi lalu simpan order
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
@@ -980,8 +870,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                       backgroundColor: _primary,
                                       shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(10)),
-                                      padding:
-                                          const EdgeInsets.symmetric(vertical: 14),
+                                      padding: const EdgeInsets.symmetric(vertical: 14),
                                     ),
                                     onPressed: () => _doCheckout(carts),
                                     child: Text('Checkout',
@@ -1004,9 +893,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
     );
   }
 
-  // ============================================================
-  // WIDGET: navbar atas dengan tombol back ke UserHomePage
-  // ============================================================
   Widget _buildNavbar(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -1017,7 +903,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
           // -------------------------------------------------------
           // TOMBOL BACK: navigasi ke UserHomePage (bukan pop)
           // pushReplacement agar halaman keranjang tidak menumpuk
-          // di navigation stack
           // -------------------------------------------------------
           IconButton(
             onPressed: () {
@@ -1044,9 +929,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
     );
   }
 
-  // ============================================================
-  // WIDGET HELPER: tombol bulat untuk tambah/kurang qty
-  // ============================================================
   Widget _qtyBtn(String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,

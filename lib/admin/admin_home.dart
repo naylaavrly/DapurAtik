@@ -8,6 +8,7 @@ import 'admin_paket_page.dart';
 import 'admin_user_page.dart';
 import 'admin_order_page.dart';
 import 'admin_profile.dart';
+import '../landing/landing_page.dart'; // ← import landing page
 
 const Color _primary   = Color(0xFF7A1C1C);
 const Color _textMuted = Color(0xFF9E9E9E);
@@ -42,7 +43,6 @@ class _AdminHomeState extends State<AdminHome> {
   int _selectedIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // Callback untuk child (dashboard) bisa navigasi ke tab tertentu
   void _navigateTo(int index) => setState(() => _selectedIndex = index);
 
   List<Widget> get _pages => [
@@ -61,31 +61,22 @@ class _AdminHomeState extends State<AdminHome> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: const Color(0xFFF5E6DA),
-
-      // ── Notifikasi Drawer (dari kanan) ──
       endDrawer: _NotifDrawer(
         onGoToOrders: () {
-          Navigator.pop(context); // tutup drawer
+          Navigator.pop(context);
           _navigateTo(2);
         },
       ),
-
       body: Stack(
         children: [
-          // ── Content ──
-          Positioned.fill(
-            child: _pages[_selectedIndex],
-          ),
-
-          // ── Floating Navbar ──
+          Positioned.fill(child: _pages[_selectedIndex]),
           Positioned(
             left: 0,
             right: 0,
             bottom: 20,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.97),
                   borderRadius: BorderRadius.circular(40),
@@ -100,11 +91,11 @@ class _AdminHomeState extends State<AdminHome> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _navItem(Icons.dashboard_rounded,     0, tooltip: 'Dashboard'),
+                    _navItem(Icons.dashboard_rounded,      0, tooltip: 'Dashboard'),
                     _navItem(Icons.restaurant_menu_rounded, 1, tooltip: 'Paket'),
-                    _navItem(Icons.receipt_long_rounded,  2, tooltip: 'Pesanan'),
-                    _navItem(Icons.people_rounded,        3, tooltip: 'User'),
-                    _navItem(Icons.person_rounded,        4, tooltip: 'Profil'),
+                    _navItem(Icons.receipt_long_rounded,   2, tooltip: 'Pesanan'),
+                    _navItem(Icons.people_rounded,         3, tooltip: 'User'),
+                    _navItem(Icons.person_rounded,         4, tooltip: 'Profil'),
                     const SizedBox(width: 4),
                     _divider(),
                     _logoutItem(),
@@ -129,24 +120,17 @@ class _AdminHomeState extends State<AdminHome> {
           margin: const EdgeInsets.symmetric(horizontal: 6),
           padding: const EdgeInsets.all(11),
           decoration: BoxDecoration(
-            color: isActive
-                ? _primary.withOpacity(0.1)
-                : Colors.transparent,
+            color: isActive ? _primary.withOpacity(0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(18),
           ),
-          child: Icon(
-            icon,
-            size: 24,
-            color: isActive ? _primary : Colors.grey,
-          ),
+          child: Icon(icon, size: 24, color: isActive ? _primary : Colors.grey),
         ),
       ),
     );
   }
 
   Widget _divider() => Container(
-        width: 1,
-        height: 24,
+        width: 1, height: 24,
         margin: const EdgeInsets.symmetric(horizontal: 6),
         color: Colors.black12,
       );
@@ -158,31 +142,43 @@ class _AdminHomeState extends State<AdminHome> {
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 6),
             padding: const EdgeInsets.all(11),
-            child: const Icon(Icons.logout_rounded,
-                size: 24, color: Colors.grey),
+            child: const Icon(Icons.logout_rounded, size: 24, color: Colors.grey),
           ),
         ),
       );
 
+  // ============================================================
+  // FUNGSI: dialog konfirmasi logout
+  // Setelah signOut → navigasi ke Landingpage
+  // ============================================================
   void _confirmLogout() {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Keluar dari Akun'),
         content: const Text('Yakin ingin logout dari akun admin?'),
         actions: [
+          // Tombol batal — tutup dialog saja
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Batal')),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          // Tombol logout — signOut lalu ke landing page
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white),
+                backgroundColor: Colors.red, foregroundColor: Colors.white),
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(context); // tutup dialog dulu
               await FirebaseAuth.instance.signOut();
+              if (mounted) {
+                // Navigasi ke landing page, hapus semua route sebelumnya
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const Landingpage()),
+                  (route) => false,
+                );
+              }
             },
             child: const Text('Logout'),
           ),
@@ -193,7 +189,7 @@ class _AdminHomeState extends State<AdminHome> {
 }
 
 // ============================================================
-// 🔔 NOTIF DRAWER (END DRAWER dari kanan)
+// NOTIF DRAWER
 // ============================================================
 class _NotifDrawer extends StatelessWidget {
   final VoidCallback onGoToOrders;
@@ -210,36 +206,28 @@ class _NotifDrawer extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Container(
               padding: const EdgeInsets.fromLTRB(20, 20, 16, 16),
               decoration: const BoxDecoration(
                 color: _primary,
-                borderRadius:
-                    BorderRadius.only(topLeft: Radius.circular(24)),
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(24)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.notifications_rounded,
-                      color: Colors.white, size: 20),
+                  const Icon(Icons.notifications_rounded, color: Colors.white, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text('Notifikasi',
                         style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white)),
+                            fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close,
-                        color: Colors.white70, size: 20),
+                    icon: const Icon(Icons.close, color: Colors.white70, size: 20),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
             ),
-
-            // List notifikasi
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
@@ -249,16 +237,13 @@ class _NotifDrawer extends StatelessWidget {
                     .snapshots(),
                 builder: (context, snap) {
                   if (!snap.hasData) {
-                    return const Center(
-                        child: CircularProgressIndicator(
-                            color: _primary));
+                    return const Center(child: CircularProgressIndicator(color: _primary));
                   }
 
-                  final docs = snap.data!.docs;
+                  final docs  = snap.data!.docs;
                   final notifs = docs.where((d) {
                     final data = d.data() as Map<String, dynamic>;
-                    return _normalizeStatus(data['status']) ==
-                        _sMenunggu;
+                    return _normalizeStatus(data['status']) == _sMenunggu;
                   }).toList();
 
                   if (notifs.isEmpty) {
@@ -266,67 +251,50 @@ class _NotifDrawer extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.notifications_none_rounded,
-                              size: 48,
-                              color: Colors.grey.shade300),
+                          Icon(Icons.notifications_none_rounded, size: 48, color: Colors.grey.shade300),
                           const SizedBox(height: 12),
                           Text('Tidak ada notifikasi baru',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  color: _textMuted)),
+                              style: GoogleFonts.poppins(fontSize: 13, color: _textMuted)),
                         ],
                       ),
                     );
                   }
 
                   return ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: notifs.length,
-                    separatorBuilder: (_, __) =>
-                        const Divider(height: 1, indent: 20),
+                    separatorBuilder: (_, __) => const Divider(height: 1, indent: 20),
                     itemBuilder: (context, i) {
-                      final doc  = notifs[i];
-                      final d    = doc.data() as Map<String, dynamic>;
-                      final nama = d['nama_pemesan'] ?? '-';
-                      final total= (d['grand_total'] ?? 0) as int;
-                      final ts   = (d['created_at'] as Timestamp?)
-                          ?.toDate();
-                      final isSeen = d['is_seen'] == true;
-                      // Ambil nama paket pertama
-                      String namaPaket = '-';
+                      final doc     = notifs[i];
+                      final d       = doc.data() as Map<String, dynamic>;
+                      final nama    = d['nama_pemesan'] ?? '-';
+                      final total   = (d['grand_total'] ?? 0) as int;
+                      final ts      = (d['created_at'] as Timestamp?)?.toDate();
+                      final isSeen  = d['is_seen'] == true;
 
+                      String namaPaket = '-';
                       if (d['items'] != null && d['items'] is List) {
                         final items = List<Map<String, dynamic>>.from(d['items']);
-
                         if (items.isNotEmpty) {
-                          namaPaket = items.first['nama'] ??
-                              items.first['name'] ??
-                              'Paket';
-
-                          if (items.length > 1) {
-                            namaPaket += ' + ${items.length - 1} item lainnya';
-                          }
+                          namaPaket = items.first['nama'] ?? items.first['name'] ?? 'Paket';
+                          if (items.length > 1) namaPaket += ' + ${items.length - 1} item lainnya';
                         }
                       }
+
                       final shortId = doc.id.length > 6
                           ? doc.id.substring(0, 6).toUpperCase()
                           : doc.id.toUpperCase();
 
-                      // Format rupiah
-                      final s = total.toString();
+                      final s   = total.toString();
                       final buf = StringBuffer();
                       for (int j = 0; j < s.length; j++) {
-                        if (j > 0 && (s.length - j) % 3 == 0) {
-                          buf.write('.');
-                        }
+                        if (j > 0 && (s.length - j) % 3 == 0) buf.write('.');
                         buf.write(s[j]);
                       }
                       final formatted = 'Rp ${buf.toString()}';
 
                       return InkWell(
                         onTap: () async {
-                          // Tandai sudah dilihat
                           if (!isSeen) {
                             await FirebaseFirestore.instance
                                 .collection('orders')
@@ -336,87 +304,51 @@ class _NotifDrawer extends StatelessWidget {
                           onGoToOrders();
                         },
                         child: Container(
-                          color: isSeen
-                              ? Colors.transparent
-                              : _primary.withOpacity(0.04),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 14),
+                          color: isSeen ? Colors.transparent : _primary.withOpacity(0.04),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                           child: Row(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Dot unread
                               Padding(
-                                padding: const EdgeInsets.only(
-                                    top: 5, right: 10),
+                                padding: const EdgeInsets.only(top: 5, right: 10),
                                 child: Container(
-                                  width: 8,
-                                  height: 8,
+                                  width: 8, height: 8,
                                   decoration: BoxDecoration(
-                                    color: isSeen
-                                        ? Colors.transparent
-                                        : const Color(0xFFE53935),
+                                    color: isSeen ? Colors.transparent : const Color(0xFFE53935),
                                     shape: BoxShape.circle,
                                   ),
                                 ),
                               ),
-
-                              // Ikon
                               Container(
-                                width: 40,
-                                height: 40,
+                                width: 40, height: 40,
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFFFF3E0),
-                                  borderRadius:
-                                      BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const Icon(
-                                    Icons.receipt_long_rounded,
-                                    color: Color(0xFFE65100),
-                                    size: 18),
+                                child: const Icon(Icons.receipt_long_rounded,
+                                    color: Color(0xFFE65100), size: 18),
                               ),
                               const SizedBox(width: 12),
-
-                              // Teks
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      'Pesanan baru masuk',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 13,
-                                        fontWeight: isSeen
-                                            ? FontWeight.w500
-                                            : FontWeight.w700,
-                                        color: const Color(
-                                            0xFF1A1A1A),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '$nama · #$namaPaket',
-                                      style: GoogleFonts.poppins(
-                                          fontSize: 12,
-                                          color: _textMuted),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      formatted,
-                                      style: GoogleFonts.poppins(
-                                          fontSize: 12,
-                                          fontWeight:
-                                              FontWeight.w600,
-                                          color: _primary),
-                                    ),
-                                    if (ts != null)
-                                      Text(
-                                        _timeAgo(ts),
+                                    Text('Pesanan baru masuk',
                                         style: GoogleFonts.poppins(
-                                            fontSize: 11,
-                                            color: _textMuted),
-                                      ),
+                                          fontSize: 13,
+                                          fontWeight: isSeen ? FontWeight.w500 : FontWeight.w700,
+                                          color: const Color(0xFF1A1A1A),
+                                        )),
+                                    const SizedBox(height: 2),
+                                    Text('$nama · #$namaPaket',
+                                        style: GoogleFonts.poppins(fontSize: 12, color: _textMuted)),
+                                    const SizedBox(height: 2),
+                                    Text(formatted,
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 12, fontWeight: FontWeight.w600, color: _primary)),
+                                    if (ts != null)
+                                      Text(_timeAgo(ts),
+                                          style: GoogleFonts.poppins(fontSize: 11, color: _textMuted)),
                                   ],
                                 ),
                               ),
@@ -429,8 +361,6 @@ class _NotifDrawer extends StatelessWidget {
                 },
               ),
             ),
-
-            // Footer — lihat semua pesanan
             Padding(
               padding: const EdgeInsets.all(16),
               child: SizedBox(
@@ -439,18 +369,13 @@ class _NotifDrawer extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primary,
                     foregroundColor: Colors.white,
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: onGoToOrders,
-                  icon: const Icon(
-                      Icons.receipt_long_rounded,
-                      size: 17),
+                  icon: const Icon(Icons.receipt_long_rounded, size: 17),
                   label: Text('Lihat Semua Pesanan',
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600)),
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
                 ),
               ),
             ),
