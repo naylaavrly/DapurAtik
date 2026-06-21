@@ -247,47 +247,28 @@ class _HistoryPageState extends State<HistoryPage> {
 
           const SizedBox(height: 10),
 
-          Row(
-            children: [
+          Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
 
-              ClipRRect(
-                borderRadius:
-                    BorderRadius.circular(8),
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.restaurant_menu),
-                ),
+            Text(
+              firstItem['name'] ?? 'Produk',
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
               ),
+            ),
 
-              const SizedBox(width: 12),
+            const SizedBox(height: 4),
 
-              Expanded(
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-
-                    Text(
-                      "${firstItem['name'] ?? 'Produk'}",
-                      style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-
-                    Text(
-                      "${firstItem['qty'] ?? 0} box",
-                      style: GoogleFonts.poppins(
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
+            Text(
+              "${firstItem['qty'] ?? 0} box",
+              style: GoogleFonts.poppins(
+                color: Colors.grey,
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
 
           const Divider(),
 
