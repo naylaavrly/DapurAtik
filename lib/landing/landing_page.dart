@@ -415,21 +415,22 @@ class _LandingpageState extends State<Landingpage> {
 
   Widget _buildStatsStrip() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
         color: _bgPage,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _divider),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: const [
-          _StatItem(value: "28+",        label: "Tahun Pengalaman"),
-          _Pipe(),
-          _StatItem(value: "3 Kategori", label: "Jenis Paket"),
-          _Pipe(),
-          _StatItem(value: "100+",       label: "Pelanggan Puas"),
-        ],
+      child: const IntrinsicHeight(
+        child: Row(
+          children: [
+            Expanded(child: _StatItem(value: "28+",        label: "Tahun Pengalaman")),
+            _Pipe(),
+            Expanded(child: _StatItem(value: "3 Kategori", label: "Jenis Paket")),
+            _Pipe(),
+            Expanded(child: _StatItem(value: "100+",       label: "Pelanggan Puas")),
+          ],
+        ),
       ),
     );
   }
@@ -1055,16 +1056,24 @@ class _StatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(value,
-              style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: _primary)),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(value,
+                style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: _primary)),
+          ),
           const SizedBox(height: 2),
-          Text(label,
-              style: GoogleFonts.poppins(
-                  fontSize: 11, color: _textSoft)),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(label,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                    fontSize: 11, color: _textSoft)),
+          ),
         ],
       );
 }
