@@ -113,12 +113,15 @@ class _LandingpageState extends State<Landingpage> {
 
   // ─────────────── NAVBAR ───────────────
   Widget _buildNavbar() {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+
     return Container(
       color: _primary,
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // Logo kiri
           Row(
             children: [
               Container(
@@ -131,53 +134,62 @@ class _LandingpageState extends State<Landingpage> {
                     color: Colors.white, size: 18),
               ),
               const SizedBox(width: 10),
-              Text("Mbak Atik Catering",
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 17,
-                    letterSpacing: 0.3,
-                  )),
-            ],
-          ),
-          Row(
-            children: [
-              _navBtn("Beranda", () => _goto(_homeKey)),
-              _navBtn("Menu",    () => _goto(_menuKey)),
-              _navBtn("Kontak",  () => _goto(_kontakKey)),
-              const SizedBox(width: 8),
-              OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.white54),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30)),
+              Text(
+                "Mbak Atik Catering",
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: isMobile ? 14 : 17,
+                  letterSpacing: 0.3,
                 ),
-                onPressed: () => _showLoginDialog(),
-                child: Text("Login",
-                    style: GoogleFonts.poppins(
-                        fontSize: 13, fontWeight: FontWeight.w600)),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: _primary,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30)),
-                  elevation: 0,
-                ),
-                onPressed: () => _showRegisterDialog(),
-                child: Text("Daftar",
-                    style: GoogleFonts.poppins(
-                        fontSize: 13, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
+
+          // Kanan: hamburger (mobile) atau nav penuh (desktop)
+          isMobile
+              ? IconButton(
+                  icon: const Icon(Icons.menu, color: Colors.white, size: 26),
+                  onPressed: _showMobileMenu,
+                )
+              : Row(
+                  children: [
+                    _navBtn("Beranda", () => _goto(_homeKey)),
+                    _navBtn("Menu",    () => _goto(_menuKey)),
+                    _navBtn("Kontak",  () => _goto(_kontakKey)),
+                    const SizedBox(width: 8),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.white54),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30)),
+                      ),
+                      onPressed: _showLoginDialog,
+                      child: Text("Login",
+                          style: GoogleFonts.poppins(
+                              fontSize: 13, fontWeight: FontWeight.w600)),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: _primary,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30)),
+                        elevation: 0,
+                      ),
+                      onPressed: _showRegisterDialog,
+                      child: Text("Daftar",
+                          style: GoogleFonts.poppins(
+                              fontSize: 13, fontWeight: FontWeight.w600)),
+                    ),
+                  ],
+                ),
         ],
       ),
     );
@@ -193,6 +205,103 @@ class _LandingpageState extends State<Landingpage> {
             style: GoogleFonts.poppins(
                 fontSize: 13, fontWeight: FontWeight.w500)),
       );
+
+  // ── Mobile menu (bottom sheet)
+  void _showMobileMenu() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              width: 40, height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+
+            // Nav links
+            _mobileNavItem(Icons.home_outlined, "Beranda", () {
+              Navigator.pop(context);
+              _goto(_homeKey);
+            }),
+            _mobileNavItem(Icons.restaurant_menu_outlined, "Menu", () {
+              Navigator.pop(context);
+              _goto(_menuKey);
+            }),
+            _mobileNavItem(Icons.phone_outlined, "Kontak", () {
+              Navigator.pop(context);
+              _goto(_kontakKey);
+            }),
+
+            const Divider(height: 28),
+
+            // Tombol Login
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30)),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showLoginDialog();
+                },
+                child: Text("Login",
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // Tombol Daftar
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: _primary,
+                  side: const BorderSide(color: _primary),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30)),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showRegisterDialog();
+                },
+                child: Text("Belum punya akun? Daftar",
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _mobileNavItem(IconData icon, String label, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: _primary, size: 22),
+      title: Text(label,
+          style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w500, fontSize: 15)),
+      onTap: onTap,
+      contentPadding: EdgeInsets.zero,
+    );
+  }
 
   void _showLoginDialog() => showDialog(
         context: context,
@@ -610,7 +719,7 @@ class _LandingpageState extends State<Landingpage> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30)),
                 ),
-                onPressed: () => _showLoginDialog(),
+                onPressed: _showLoginDialog,
                 icon: const Icon(Icons.login, size: 17),
                 label: Text("Login",
                     style:
@@ -626,7 +735,7 @@ class _LandingpageState extends State<Landingpage> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30)),
                 ),
-                onPressed: () => _showRegisterDialog(),
+                onPressed: _showRegisterDialog,
                 icon: const Icon(Icons.person_add_outlined, size: 17),
                 label: Text("Daftar",
                     style:
