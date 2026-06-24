@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'user_home.dart';
 
@@ -24,6 +25,14 @@ class _KeranjangPageState extends State<KeranjangPage> {
 
   static const Color _primary = Color(0xFF61100D);
   static const Color _bgColor = Color(0xFFF5E6DA);
+
+  // ============================================================
+  // INFO REKENING ADMIN
+  // ============================================================
+  static const String _namaBank = 'BCA';
+  static const String _namaRekening = 'ATIK AZZAM';
+  static const String _noRekening = '2023320022';
+  static const String _waLink = 'https://wa.me/6281315837240';
 
   String formatRupiah(int number) {
     return "Rp ${number.toString().replaceAllMapped(
@@ -282,6 +291,13 @@ class _KeranjangPageState extends State<KeranjangPage> {
       return;
     }
 
+    // -------------------------------------------------------
+    // TAMPILKAN POPUP NOREK SEBELUM PROSES ORDER
+    // -------------------------------------------------------
+    if (!mounted) return;
+    final konfirmasi = await _showNorekDialog();
+    if (konfirmasi != true) return;
+
     final user = FirebaseAuth.instance.currentUser!;
     int grandTotal = 0;
     List<Map<String, dynamic>> items = [];
@@ -336,7 +352,130 @@ class _KeranjangPageState extends State<KeranjangPage> {
   }
 
   // ============================================================
-  // WIDGET DIALOG: invoice ringkasan pesanan setelah checkout
+  // POPUP NOREK: muncul setelah checkout, sebelum invoice
+  // user harus klik Salin lalu baru invoice muncul
+  // ============================================================
+  Future<bool?> _showNorekDialog() {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.account_balance, color: _primary, size: 20),
+            const SizedBox(width: 8),
+            Text('Informasi Pembayaran',
+                style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold, fontSize: 15)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Silakan transfer pembayaran ke rekening berikut:',
+              style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+
+            // -------------------------------------------------------
+            // CARD INFO REKENING
+            // -------------------------------------------------------
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _bgColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _primary.withOpacity(0.2)),
+              ),
+              child: Column(
+                children: [
+                  Text(_namaBank,
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: _primary)),
+                  const SizedBox(height: 4),
+                  Text('a.n. $_namaRekening',
+                      style: GoogleFonts.poppins(
+                          fontSize: 12, color: Colors.grey[700])),
+                  const SizedBox(height: 10),
+                  // Nomor rekening + tombol salin
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _noRekening,
+                        style: GoogleFonts.poppins(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 2,
+                            color: Colors.black87),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // -------------------------------------------------------
+            // TOMBOL SALIN: copy norek ke clipboard, lalu tutup dialog
+            // dan lanjut ke invoice
+            // -------------------------------------------------------
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primary,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                icon: const Icon(Icons.copy, color: Colors.white, size: 16),
+                label: Text('Salin Nomor Rekening',
+                    style: GoogleFonts.poppins(
+                        color: Colors.white, fontWeight: FontWeight.w600)),
+                onPressed: () {
+                  // Salin nomor rekening ke clipboard
+                  Clipboard.setData(const ClipboardData(text: _noRekening));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Nomor rekening disalin!',
+                          style: GoogleFonts.poppins(fontSize: 13)),
+                      backgroundColor: Colors.green[700],
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                  // Tutup dialog dan lanjut ke invoice
+                  Navigator.pop(ctx, true);
+                },
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Tombol batal
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text('Batal',
+                  style: GoogleFonts.poppins(color: Colors.grey)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // INVOICE: muncul setelah norek disalin
   // ============================================================
   void _showInvoice({
     required String orderId,
@@ -441,13 +580,47 @@ class _KeranjangPageState extends State<KeranjangPage> {
                         fontWeight: FontWeight.w600,
                         fontSize: 12)),
               ),
+
+              const SizedBox(height: 6),
+
+              // -------------------------------------------------------
+              // LINK HUBUNGI ADMIN via WhatsApp
+              // -------------------------------------------------------
+              Center(
+                child: GestureDetector(
+                  onTap: () async {
+                    final uri = Uri.parse(_waLink);
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri,
+                          mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.chat, color: Color(0xFF25D366), size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Hubungi Admin',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: const Color(0xFF25D366),
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                          decorationColor: const Color(0xFF25D366),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 16),
 
               // -------------------------------------------------------
               // TOMBOL SELESAI:
               // 1. Tutup dialog invoice
               // 2. Navigasi ke UserHome dengan initialIndex: 2 (HistoryPage)
-              //    pushAndRemoveUntil agar stack bersih
               // -------------------------------------------------------
               SizedBox(
                 width: double.infinity,
@@ -458,7 +631,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
                         borderRadius: BorderRadius.circular(10)),
                   ),
                   onPressed: () {
-                    // Tutup dialog invoice dulu
+                    // Tutup dialog invoice
                     Navigator.pop(ctx);
 
                     // Navigasi ke HistoryPage via UserHome(initialIndex: 2)
@@ -521,11 +694,17 @@ class _KeranjangPageState extends State<KeranjangPage> {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
+    // -------------------------------------------------------
+    // PAKAI Scaffold TANPA Stack floating navbar
+    // agar bottom bar dari user_home tidak muncul di sini
+    // -------------------------------------------------------
     return Scaffold(
       backgroundColor: _bgColor,
       body: Column(
         children: [
+          // Navbar dengan tombol back ke UserHomePage
           _buildNavbar(context),
+
           Expanded(
             child: user == null
                 ? const Center(child: Text('User belum login'))
@@ -893,6 +1072,9 @@ class _KeranjangPageState extends State<KeranjangPage> {
     );
   }
 
+  // -------------------------------------------------------
+  // NAVBAR: tombol back ke UserHome tanpa floating bottom bar
+  // -------------------------------------------------------
   Widget _buildNavbar(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -900,10 +1082,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
       color: _primary,
       child: Row(
         children: [
-          // -------------------------------------------------------
-          // TOMBOL BACK: navigasi ke UserHomePage (bukan pop)
-          // pushReplacement agar halaman keranjang tidak menumpuk
-          // -------------------------------------------------------
           IconButton(
             onPressed: () {
               Navigator.pushReplacement(

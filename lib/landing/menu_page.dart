@@ -5,6 +5,37 @@ import 'package:google_fonts/google_fonts.dart';
 import 'menu_detail_page.dart';
 import '../user/user_cart.dart';
 
+// ================= MODEL KATEGORI =================
+class _KategoriModel {
+  final String id;
+  final String label;
+  final Color colorBg;
+  final Color colorText;
+  final Color colorStrip;
+
+  _KategoriModel({
+    required this.id,
+    required this.label,
+    required this.colorBg,
+    required this.colorText,
+    required this.colorStrip,
+  });
+
+  factory _KategoriModel.fromDoc(DocumentSnapshot doc) {
+    final d = doc.data() as Map<String, dynamic>;
+    return _KategoriModel(
+      id: doc.id,
+      label: d['label'] ?? doc.id,
+      colorBg:
+          Color(int.tryParse(d['color_bg'] ?? '0xFFEEEDFE') ?? 0xFFEEEDFE),
+      colorText:
+          Color(int.tryParse(d['color_text'] ?? '0xFF3C3489') ?? 0xFF3C3489),
+      colorStrip:
+          Color(int.tryParse(d['color_strip'] ?? '0xFF7A1C1C') ?? 0xFF7A1C1C),
+    );
+  }
+}
+
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key});
 
@@ -13,17 +44,12 @@ class MenuPage extends StatefulWidget {
 }
 
 class _MenuPageState extends State<MenuPage> {
-
-  // ============================================================
-  // STATE: kata kunci pencarian menu
-  // ============================================================
-  String searchQuery = "";
+  String searchQuery = '';
 
   static const Color _primary = Color(0xFF61100D);
+  static const Color _bgColor = Color(0xFFF5E6DA);
+  static const Color _textSoft = Color(0xFF8E8E8E);
 
-  // ============================================================
-  // HELPER: format angka ke Rupiah
-  // ============================================================
   String formatRupiah(int number) {
     return "Rp ${number.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
@@ -31,9 +57,6 @@ class _MenuPageState extends State<MenuPage> {
     )}";
   }
 
-  // ============================================================
-  // HELPER: konversi dynamic ke int
-  // ============================================================
   int _toInt(dynamic value) {
     if (value is int) return value;
     if (value is num) return value.toInt();
@@ -43,8 +66,6 @@ class _MenuPageState extends State<MenuPage> {
 
   // ============================================================
   // FUNGSI: tambah paket ke collection 'carts' di Firestore
-  //   - Kalau sudah ada → increment qty
-  //   - Kalau belum ada → buat dokumen baru
   // ============================================================
   Future<void> _addToCart({
     required String packageId,
@@ -64,7 +85,6 @@ class _MenuPageState extends State<MenuPage> {
 
     final cartsRef = FirebaseFirestore.instance.collection('carts');
 
-    // Cek apakah paket ini sudah ada di keranjang user
     final existing = await cartsRef
         .where('user_id', isEqualTo: user.uid)
         .where('package_id', isEqualTo: packageId)
@@ -72,7 +92,6 @@ class _MenuPageState extends State<MenuPage> {
         .get();
 
     if (existing.docs.isNotEmpty) {
-      // Sudah ada → tambah qty
       final doc = existing.docs.first;
       final currentQty = (doc['qty'] as num?)?.toInt() ?? 1;
       final newQty = currentQty + 1;
@@ -81,7 +100,6 @@ class _MenuPageState extends State<MenuPage> {
         'total_price': newQty * price,
       });
     } else {
-      // Belum ada → buat dokumen baru
       await cartsRef.add({
         'user_id': user.uid,
         'package_id': packageId,
@@ -107,174 +125,270 @@ class _MenuPageState extends State<MenuPage> {
     }
   }
 
-  // ============================================================
-  // BUILD: halaman katalog menu
-  // ============================================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5E6DA),
+      backgroundColor: _bgColor,
       body: Column(
         children: [
-          // Navbar — style sama dengan user_home (horizontal: 30)
           _buildNavbar(context),
-
+          // Search bar
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: TextField(
+              onChanged: (v) =>
+                  setState(() => searchQuery = v.toLowerCase()),
+              decoration: InputDecoration(
+                hintText: 'Cari paket...',
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+          // Konten utama
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final width = constraints.maxWidth;
-                int crossAxisCount = 2;
-                if (width > 600) crossAxisCount = 3;
-                if (width > 1000) crossAxisCount = 4;
-                if (width > 1400) crossAxisCount = 5;
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('categories')
+                  .orderBy('urutan')
+                  .snapshots(),
+              builder: (context, catSnap) {
+                if (!catSnap.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                return Column(
-                  children: [
+                final categories = catSnap.data!.docs
+                    .map(_KategoriModel.fromDoc)
+                    .toList();
 
-                    // ----------------------------------------
-                    // SEARCH BAR: filter paket berdasarkan nama
-                    // ----------------------------------------
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 20),
-                      child: TextField(
-                        onChanged: (v) =>
-                            setState(() => searchQuery = v.toLowerCase()),
-                        decoration: InputDecoration(
-                          hintText: "Cari paket...",
-                          prefixIcon: const Icon(Icons.search),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
-                    ),
+                return StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('packages')
+                      .snapshots(),
+                  builder: (context, pkgSnap) {
+                    if (!pkgSnap.hasData) {
+                      return const Center(
+                          child: CircularProgressIndicator());
+                    }
 
-                    const SizedBox(height: 10),
+                    // Filter berdasarkan searchQuery
+                    final allDocs = pkgSnap.data!.docs.where((doc) {
+                      final d = doc.data() as Map<String, dynamic>;
+                      final name =
+                          (d['name'] ?? '').toString().toLowerCase();
+                      return name.contains(searchQuery);
+                    }).toList();
 
-                    // ----------------------------------------
-                    // GRID PAKET: stream dari collection 'packages'
-                    // ----------------------------------------
-                    Expanded(
-                      child: StreamBuilder<QuerySnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection('packages')
-                            .orderBy('type')
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          }
-                          if (snapshot.hasError) {
-                            return Center(
-                                child: Text("Error: ${snapshot.error}"));
-                          }
-                          if (!snapshot.hasData) {
-                            return const Center(
-                                child: Text("Tidak ada data"));
-                          }
+                    // Urutkan sesuai urutan kategori
+                    final catIds =
+                        categories.map((c) => c.id).toList();
 
-                          // Filter berdasarkan searchQuery
-                          final menus = snapshot.data!.docs.where((doc) {
-                            final data =
-                                doc.data() as Map<String, dynamic>;
-                            final name =
-                                (data['name'] ?? "").toString().toLowerCase();
-                            return name.contains(searchQuery);
-                          }).toList();
+                    allDocs.sort((a, b) {
+                      final da = a.data() as Map<String, dynamic>;
+                      final db = b.data() as Map<String, dynamic>;
+                      final ta = (da['type'] ?? '')
+                          .toString()
+                          .toLowerCase();
+                      final tb = (db['type'] ?? '')
+                          .toString()
+                          .toLowerCase();
+                      final oa = catIds.indexOf(ta);
+                      final ob = catIds.indexOf(tb);
+                      final ia = oa < 0 ? 99 : oa;
+                      final ib = ob < 0 ? 99 : ob;
+                      if (ia != ib) return ia.compareTo(ib);
+                      return (da['name'] ?? '')
+                          .toString()
+                          .toLowerCase()
+                          .compareTo(
+                              (db['name'] ?? '').toString().toLowerCase());
+                    });
 
-                          if (menus.isEmpty) {
-                            return Center(
-                              child: Text("Tidak ada paket 😢",
-                                  style: GoogleFonts.poppins()),
-                            );
-                          }
+                    if (allDocs.isEmpty) {
+                      return Center(
+                        child: Text('Tidak ada paket 😢',
+                            style: GoogleFonts.poppins()),
+                      );
+                    }
 
-                          return GridView.builder(
-                            padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
-                            itemCount: menus.length,
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: crossAxisCount,
-                              mainAxisSpacing: 15,
-                              crossAxisSpacing: 15,
-                              childAspectRatio: 0.95,
-                            ),
-                            itemBuilder: (context, index) {
-                              final doc = menus[index];
-                              final data =
-                                  doc.data() as Map<String, dynamic>;
+                    // Kelompokkan per kategori
+                    final Map<String, List<QueryDocumentSnapshot>>
+                        grouped = {};
+                    for (final doc in allDocs) {
+                      final type = ((doc.data()
+                                  as Map<String, dynamic>)['type'] ??
+                              '')
+                          .toString()
+                          .toLowerCase();
+                      grouped.putIfAbsent(type, () => []).add(doc);
+                    }
 
-                              // Ambil semua field yang dibutuhkan
-                              final packageId = doc.id;
-                              final name = data['name'] ?? '';
-                              final price = _toInt(data['price']);
-                              final minOrder = _toInt(data['min_order']);
-                              final leadTime = _toInt(data['lead_time']);
-                              final type = data['type']?.toString() ?? '';
+                    // Section sesuai urutan kategori
+                    final sections = [
+                      ...catIds.where((id) => grouped.containsKey(id)),
+                      ...grouped.keys.where((k) => !catIds.contains(k)),
+                    ];
 
-                              final menuItemsRaw = data['menu_items'];
-                              final List<String> menuItems =
-                                  menuItemsRaw is List
-                                      ? menuItemsRaw
-                                          .map((e) => e.toString())
-                                          .toList()
-                                      : <String>[];
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        final width = constraints.maxWidth;
+                        final crossCount =
+                            width < 500 ? 1 : width < 900 ? 2 : 3;
 
-                              // Generate description dari field Firestore
-                              final description = menuItems.isNotEmpty
-                                  ? "Termasuk: ${menuItems.join(', ')}\n\n"
-                                      "Minimal order: $minOrder porsi\n"
-                                      "Lead time: $leadTime hari"
-                                  : (data['description'] ?? '').toString();
+                        return ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(
+                              20, 0, 20, 100),
+                          itemCount: sections.length,
+                          itemBuilder: (context, si) {
+                            final typeId = sections[si];
+                            final items = grouped[typeId]!;
+                            final katModel = categories
+                                .where((c) => c.id == typeId)
+                                .firstOrNull;
+                            final label = katModel?.label ?? typeId;
+                            final badgeBg = katModel?.colorBg ??
+                                _primary.withOpacity(0.1);
+                            final badgeText =
+                                katModel?.colorText ?? _primary;
+                            final stripColor =
+                                katModel?.colorStrip ?? _primary;
 
-                              // ----------------------------------------
-                              // CARD: tap → buka MenuDetailPage
-                              //        tombol + → langsung tambah ke cart
-                              // ----------------------------------------
-                              return InkWell(
-                                borderRadius: BorderRadius.circular(14),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => MenuDetailPage(
-                                        packageId: packageId,
-                                        name: name,
-                                        price: price,
-                                        description: description,
-                                        type: type,
-                                        leadTime: leadTime,
-                                        minOrder: minOrder,
+                            return Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                // ── SECTION HEADER ──
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      top: 16, bottom: 12),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding:
+                                            const EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 5),
+                                        decoration: BoxDecoration(
+                                          color: badgeBg,
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          label,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: badgeText,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                },
-                                child: _menuCard(
-                                  name: name,
-                                  price: price,
-                                  menuItems: menuItems,
-                                  onAddToCart: () => _addToCart(
-                                    packageId: packageId,
-                                    name: name,
-                                    price: price,
-                                    type: type,
-                                    leadTime: leadTime,
-                                    minOrder: minOrder,
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Container(
+                                            height: 1,
+                                            color: Colors.black12),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '${items.length} paket',
+                                        style: const TextStyle(
+                                            fontSize: 12,
+                                            color: _textSoft),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
+
+                                // ── GRID KARTU ──
+                                GridView.builder(
+                                  shrinkWrap: true,
+                                  physics:
+                                      const NeverScrollableScrollPhysics(),
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: crossCount,
+                                    crossAxisSpacing: 12,
+                                    mainAxisSpacing: 12,
+                                    mainAxisExtent: 220,
+                                  ),
+                                  itemCount: items.length,
+                                  itemBuilder: (context, ii) {
+                                    final doc = items[ii];
+                                    final d = doc.data()
+                                        as Map<String, dynamic>;
+
+                                    final packageId = doc.id;
+                                    final name =
+                                        d['name']?.toString() ?? '';
+                                    final price = _toInt(d['price']);
+                                    final minOrder =
+                                        _toInt(d['min_order']);
+                                    final leadTime =
+                                        _toInt(d['lead_time']);
+                                    final type =
+                                        d['type']?.toString() ?? '';
+                                    final menu =
+                                        List<String>.from(
+                                            d['menu_items'] ?? []);
+
+                                    final description =
+                                        menu.isNotEmpty
+                                            ? "Termasuk: ${menu.join(', ')}\n\nMinimal order: $minOrder porsi\nLead time: $leadTime hari"
+                                            : (d['description'] ?? '')
+                                                .toString();
+
+                                    return GestureDetector(
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => MenuDetailPage(
+                                            packageId: packageId,
+                                            name: name,
+                                            price: price,
+                                            description: description,
+                                            type: type,
+                                            leadTime: leadTime,
+                                            minOrder: minOrder,
+                                          ),
+                                        ),
+                                      ),
+                                      child: _menuCard(
+                                        name: name,
+                                        price: price,
+                                        minOrder: minOrder,
+                                        leadTime: leadTime,
+                                        menuItems: menu,
+                                        label: label,
+                                        badgeBg: badgeBg,
+                                        badgeText: badgeText,
+                                        stripColor: stripColor,
+                                        onAddToCart: () => _addToCart(
+                                          packageId: packageId,
+                                          name: name,
+                                          price: price,
+                                          type: type,
+                                          leadTime: leadTime,
+                                          minOrder: minOrder,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+
+                                const SizedBox(height: 8),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
                 );
               },
             ),
@@ -285,28 +399,25 @@ class _MenuPageState extends State<MenuPage> {
   }
 
   // ============================================================
-  // WIDGET: navbar — padding disesuaikan dengan user_home
-  //         (horizontal: 30, vertical: 20)
-  //         + ikon keranjang dengan badge jumlah item real-time
+  // NAVBAR dengan ikon keranjang + badge
   // ============================================================
   Widget _buildNavbar(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 11.5),
+      padding:
+          const EdgeInsets.symmetric(horizontal: 30, vertical: 11.5),
       color: _primary,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            "Katalog Menu",
+            'Katalog Menu',
             style: GoogleFonts.poppins(
               color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 18,
             ),
           ),
-
-          // Ikon keranjang + badge jumlah item
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseAuth.instance.currentUser == null
                 ? null
@@ -321,19 +432,15 @@ class _MenuPageState extends State<MenuPage> {
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  // Tombol keranjang — buka KeranjangPage
                   IconButton(
                     icon: const Icon(Icons.shopping_cart_outlined,
                         color: Colors.white, size: 26),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const KeranjangPage()),
-                      );
-                    },
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const KeranjangPage()),
+                    ),
                   ),
-                  // Badge merah jumlah item (tampil kalau count > 0)
                   if (count > 0)
                     Positioned(
                       top: 4,
@@ -363,85 +470,185 @@ class _MenuPageState extends State<MenuPage> {
   }
 
   // ============================================================
-  // WIDGET CARD: tampilan satu paket di grid
-  //   - Tap card → buka detail (onTap di InkWell)
-  //   - Tap tombol + → tambah ke keranjang (onAddToCart)
-  //     GestureDetector terpisah agar tidak trigger onTap card
+  // CARD PAKET — desain mengikuti admin_paket_page
   // ============================================================
   Widget _menuCard({
     required String name,
     required int price,
+    required int minOrder,
+    required int leadTime,
     required List<String> menuItems,
+    required String label,
+    required Color badgeBg,
+    required Color badgeText,
+    required Color stripColor,
     required VoidCallback onAddToCart,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        border: Border.all(color: Colors.black.withOpacity(0.07)),
       ),
+      clipBehavior: Clip.hardEdge,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Top strip warna kategori
+          Container(height: 4, color: stripColor),
 
-          // Nama paket
-          Text(
-            name,
-            style: GoogleFonts.poppins(
-              color: Colors.black87,
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-
-          const SizedBox(height: 6),
-
-          // Daftar isi menu
-          if (menuItems.isNotEmpty)
-            Text(
-              menuItems.join(', '),
-              style: TextStyle(color: Colors.grey[600], fontSize: 11),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-
-          const Spacer(),
-
-          // Harga + tombol tambah ke keranjang
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                formatRupiah(price),
-                style: const TextStyle(
-                  color: Color(0xFF61100D),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              // Tombol + — GestureDetector terpisah dari card tap
-              GestureDetector(
-                onTap: onAddToCart,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF61100D),
-                    shape: BoxShape.circle,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Badge kategori
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: badgeBg,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: badgeText,
+                      ),
+                    ),
                   ),
-                  padding: const EdgeInsets.all(6),
-                  child: const Icon(Icons.add, size: 18, color: Colors.white),
-                ),
+
+                  const SizedBox(height: 6),
+
+                  // Nama + harga
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          name,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF1A1A1A),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        formatRupiah(price),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: _primary,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+                  Container(height: 0.5, color: Colors.black12),
+                  const SizedBox(height: 8),
+
+                  // Min pesanan + persiapan
+                  Row(
+                    children: [
+                      _statItem('Min. pesan', '$minOrder porsi'),
+                      const SizedBox(width: 16),
+                      _statItem('Persiapan', '$leadTime hari'),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Chip menu items
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: menuItems
+                            .map((e) => _menuChip(e))
+                            .toList(),
+                      ),
+                    ),
+                  ),
+
+                  // Footer: tombol tambah ke keranjang
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: onAddToCart,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _primary,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(Icons.add,
+                                  size: 14, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text(
+                                'Keranjang',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _statItem(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style:
+                const TextStyle(fontSize: 10, color: _textSoft)),
+        const SizedBox(height: 1),
+        Text(value,
+            style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1A1A1A))),
+      ],
+    );
+  }
+
+  Widget _menuChip(String label) {
+    return Container(
+      padding:
+          const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F0ED),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+            fontSize: 10, color: Color(0xFF555555)),
       ),
     );
   }
